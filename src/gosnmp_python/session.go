@@ -28,6 +28,7 @@ type MultiResult struct {
 	BoolValue        bool
 	IntValue         int
 	FloatValue       float64
+	ByteArray        []byte
 	StringValue      string
 }
 
@@ -101,6 +102,7 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 		BoolValue:        false,
 		IntValue:         0,
 		FloatValue:       0.0,
+		ByteArray:        []byte{},
 		StringValue:      "",
 	}
 
@@ -157,8 +159,8 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 		return multiResult, nil
 
 	case gosnmp.OctetString:
-		multiResult.Type = "string"
-		multiResult.StringValue = string(value.([]byte))
+		multiResult.Type = "bytearray"
+		multiResult.ByteArray = value.([]byte)
 		return multiResult, nil
 
 	case gosnmp.ObjectIdentifier:

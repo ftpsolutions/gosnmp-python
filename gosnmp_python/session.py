@@ -1,8 +1,9 @@
 from collections import namedtuple
+from sys import version as python_version
 
-try:
+if 'pypy' not in python_version.strip().lower():
     from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
-except:
+else:
     NewSessionV1 = lambda *args, **kwargs: None
     NewSessionV2c = lambda *args, **kwargs: None
     NewSessionV3 = lambda *args, **kwargs: None
@@ -59,6 +60,14 @@ class Session(object):
                 oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=multi_result.FloatValue,
+            )
+        elif multi_result.Type in ['bytearray']:
+            return SNMPVariable(
+                oid=oid,
+                oid_index=oid_index,
+                snmp_type=multi_result.Type,
+                value=''.join(
+                    [chr(int(x, 16)) for x in str(multi_result.ByteArray).split('{')[-1].split('}')[0].split(',')]),
             )
         elif multi_result.Type in ['string']:
             return SNMPVariable(

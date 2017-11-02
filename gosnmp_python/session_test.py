@@ -18,6 +18,7 @@ MultiResult = namedtuple('MultiResult', [
     'BoolValue',
     'IntValue',
     'FloatValue',
+    'ByteArray',
     'StringValue',
 ])
 
@@ -32,6 +33,7 @@ _MULTI_RESULT_NOSUCHINSTANCE = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -46,6 +48,7 @@ _MULTI_RESULT_NOSUCHOBJECT = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -60,6 +63,7 @@ _MULTI_RESULT_ENDOFMIBVIEW = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -74,6 +78,7 @@ _MULTI_RESULT_BOOL = MultiResult(
     BoolValue=True,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -88,6 +93,7 @@ _MULTI_RESULT_INT = MultiResult(
     BoolValue=False,
     IntValue=1337,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -102,6 +108,7 @@ _MULTI_RESULT_FLOAT = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=1.337,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -116,7 +123,23 @@ _MULTI_RESULT_STRING = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='some string',
+)
+
+_MULTI_RESULT_BYTEARRAY = MultiResult(
+    OID='.1.2.3.4',
+    Type='bytearray',
+    IsNull=False,
+    IsUnknown=False,
+    IsNoSuchInstance=False,
+    IsNoSuchObject=False,
+    IsEndOfMibView=False,
+    BoolValue=False,
+    IntValue=0,
+    FloatValue=0.0,
+    ByteArray='[]byte{0x41, 0x42, 0x43, 0x44, 0x45, 0x46}',
+    StringValue='',
 )
 
 _MULTI_RESULT_GARBAGE = MultiResult(
@@ -130,6 +153,7 @@ _MULTI_RESULT_GARBAGE = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
+    ByteArray='[]byte{}',
     StringValue='',
 )
 
@@ -199,6 +223,15 @@ class SessionTest(unittest.TestCase):
             ),
             equal_to(
                 SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='float', value=1.337)
+            )
+        )
+
+        assert_that(
+            self._subject._handle_multi_result(
+                _MULTI_RESULT_BYTEARRAY
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bytearray', value='ABCDEF')
             )
         )
 
