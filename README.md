@@ -10,7 +10,8 @@ It was made very easy with the help of the Golang
 
 * I haven't written any tests for the Go side because (excuses)
 * It doesn't work with Python 2.7.10 delivered with Mac OS (use brew to install Python 2.7.13 or something)
-* Python command needs to be prefixd with GODEBUG=cgocheck=0 (or have that in the environment)  
+* Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
+* I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)  
 
 #### How do I make use of this?
 
@@ -61,3 +62,9 @@ SNMPVariable(
     value='FTP_Switch1.ftpsolutions.com.au'
 )
 ```
+ 
+Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional,
+I was originally using that but I think its got some underlying thread-safety issues on the C side (particularly
+to do with SNMPv3).
+
+No offence to the guys that contribute to that project- it's served me very well.  
