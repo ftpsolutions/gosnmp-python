@@ -1,11 +1,6 @@
 from collections import namedtuple
 
-try:
-    import gopy
-
-    ims_snmp = gopy.load('ims_snmp')
-except:
-    ims_snmp = None  # for testing
+from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
 
 SNMPVariable = namedtuple('SNMPVariable', ['oid', 'index', 'snmp_type', 'value'])
 
@@ -93,7 +88,7 @@ class Session(object):
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
-    session = ims_snmp.NewSessionV1(
+    session = NewSessionV1(
         hostname,
         port,
         community,
@@ -107,7 +102,7 @@ def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
 
 
 def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
-    session = ims_snmp.NewSessionV2c(
+    session = NewSessionV2c(
         hostname,
         port,
         community,
@@ -122,7 +117,7 @@ def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
 
 def create_snmpv3_session(hostname, security_username, security_level, auth_password, auth_protocol, privacy_password,
                           privacy_protocol, port=161, timeout=5, retries=1):
-    session = ims_snmp.NewSessionV3(
+    session = NewSessionV3(
         hostname,
         port,
         security_username,

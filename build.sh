@@ -22,5 +22,8 @@ export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
 echo "building gopy"
 go build -a -x github.com/go-python/gopy
 
-echo "build ims_snmp"
-go build -a -x ims_snmp
+echo "building gosnmp_python"
+go build -a -x gosnmp_python
+
+echo "build gosnmp_python bindings"
+gopy bind -lang="py2" -output="gosnmp" gosnmp_python

@@ -1,4 +1,4 @@
-package ims_snmp
+package gosnmp_python
 
 import (
 	"time"
