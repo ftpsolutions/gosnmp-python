@@ -23,6 +23,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 * Python 2.7.13 or newer (Python 2.7.10 delivered with Mac OS doesn't seem to work)
 * pip
 * virtualenvwrapper
+* pkgconfig/pkg-config
 
 #### Setup (for dev)
 
