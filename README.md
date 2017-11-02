@@ -25,10 +25,10 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Setup (for dev)
 
-* <code>mkvirtualenvwrapper -p (/path/to/python) gosnmp-python 
-* <code>pip install -r requirements-dev.txt</code>
-* <code>./build.sh</code>
-* <code>py.test -v</code>
+* ```mkvirtualenvwrapper -p (/path/to/python) gosnmp-python``` 
+* ```pip install -r requirements-dev.txt```
+* ```./build.sh```
+* ```py.test -v```
 
 #### What's worth knowing if I want to further the development?
 
@@ -40,15 +40,24 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 To create an SNMPv2 session in Python do the following:
 
-<code>from gosnmp import create_snmpv2c_session
+```
+from gosnmp import create_snmpv2c_session
 
 session = create_snmpv2c_session(
     hostname='1.2.3.4',
     community='public',
 )
 
-print session.get('.1.3.6.1.2.1.1.5.0')</code>
+print session.get('.1.3.6.1.2.1.1.5.0')
+```
 
 Which returns an object like this:
 
-<code>SNMPVariable(oid='.1.3.6.1.2.1.1.5', index=0, snmp_type='string', value='FTP_Switch1.ftpsolutions.com.au')</code>
+```
+SNMPVariable(
+    oid='.1.3.6.1.2.1.1.5', 
+    index=0, 
+    snmp_type='string', 
+    value='FTP_Switch1.ftpsolutions.com.au'
+)
+```
