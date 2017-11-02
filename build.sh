@@ -26,4 +26,4 @@ echo "building gopy"
 go build -a -x github.com/go-python/gopy
 
 echo "build gosnmp_python bindings"
-gopy bind -lang="py2" -output="gosnmp_python" gosnmp_python
+./gopy bind -lang="py2" -output="gosnmp_python" gosnmp_python
