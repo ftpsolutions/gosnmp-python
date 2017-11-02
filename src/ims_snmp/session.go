@@ -9,6 +9,10 @@ import (
 	"errors"
 )
 
+//
+// structs
+//
+
 type Session struct {
 	snmp *gosnmp.GoSNMP // this being private is critical for gopy!
 }
@@ -27,41 +31,9 @@ type MultiResult struct {
 	StringValue      string
 }
 
-func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
-	snmp := &gosnmp.GoSNMP{
-		Target:    hostname,
-		Port:      uint16(port),
-		Community: community,
-		Version:   gosnmp.Version1,
-		Timeout:   time.Duration(timeout) * time.Second,
-		Retries:   retries,
-		MaxOids:   math.MaxInt32,
-	}
-
-	self := Session{
-		snmp: snmp,
-	}
-
-	return self
-}
-
-func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
-	snmp := &gosnmp.GoSNMP{
-		Target:    hostname,
-		Port:      uint16(port),
-		Community: community,
-		Version:   gosnmp.Version1,
-		Timeout:   time.Duration(timeout) * time.Second,
-		Retries:   retries,
-		MaxOids:   math.MaxInt32,
-	}
-
-	self := Session{
-		snmp: snmp,
-	}
-
-	return self
-}
+//
+// helper methods
+//
 
 func getSecurityLevel(securityLevel string) gosnmp.SnmpV3MsgFlags {
 	securityLevel = strings.ToLower(securityLevel)
@@ -117,39 +89,6 @@ func getAuthenticationDetails(AuthenticationPassword, AuthenticationProtocol str
 	return AuthenticationPassword, actualAuthenticationProtocol
 }
 
-func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
-	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
-	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
-
-	snmp := &gosnmp.GoSNMP{
-		Target:        hostname,
-		Port:          uint16(port),
-		Version:       gosnmp.Version3,
-		Timeout:       time.Duration(timeout) * time.Second,
-		Retries:       retries,
-		SecurityModel: gosnmp.UserSecurityModel,
-		MsgFlags:      getSecurityLevel(securityLevel),
-		SecurityParameters: &gosnmp.UsmSecurityParameters{
-			UserName:                 securityUsername,
-			AuthenticationProtocol:   actualAuthProtocol,
-			AuthenticationPassphrase: actualAuthPassword,
-			PrivacyProtocol:          actualPrivProtocol,
-			PrivacyPassphrase:        actualPrivPassword,
-		},
-		MaxOids: math.MaxInt32,
-	}
-
-	self := Session{
-		snmp: snmp,
-	}
-
-	return self
-}
-
-func (self *Session) Connect() error {
-	return self.snmp.Connect()
-}
-
 func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (MultiResult, error) {
 	multiResult := MultiResult{
 		OID:              oid,
@@ -179,6 +118,11 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	case gosnmp.NoSuchObject:
 		multiResult.Type = "noSuchObject"
 		multiResult.IsNoSuchObject = true
+		return multiResult, nil
+
+	case gosnmp.EndOfMibView:
+		multiResult.Type = "endOfMibView"
+		multiResult.IsEndOfMibView = true
 		return multiResult, nil
 
 	case gosnmp.Boolean:
@@ -231,6 +175,14 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	)
 }
 
+//
+// public methods
+//
+
+func (self *Session) Connect() error {
+	return self.snmp.Connect()
+}
+
 func (self *Session) Get(oid string) (MultiResult, error) {
 	emptyMultiResult := MultiResult{}
 
@@ -273,4 +225,73 @@ func (self *Session) GetNext(oid string) (MultiResult, error) {
 
 func (self *Session) Close() error {
 	return self.snmp.Conn.Close()
+}
+
+//
+// constructors
+//
+
+func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
+	snmp := &gosnmp.GoSNMP{
+		Target:    hostname,
+		Port:      uint16(port),
+		Community: community,
+		Version:   gosnmp.Version1,
+		Timeout:   time.Duration(timeout) * time.Second,
+		Retries:   retries,
+		MaxOids:   math.MaxInt32,
+	}
+
+	self := Session{
+		snmp: snmp,
+	}
+
+	return self
+}
+
+func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
+	snmp := &gosnmp.GoSNMP{
+		Target:    hostname,
+		Port:      uint16(port),
+		Community: community,
+		Version:   gosnmp.Version1,
+		Timeout:   time.Duration(timeout) * time.Second,
+		Retries:   retries,
+		MaxOids:   math.MaxInt32,
+	}
+
+	self := Session{
+		snmp: snmp,
+	}
+
+	return self
+}
+
+func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
+	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
+	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
+
+	snmp := &gosnmp.GoSNMP{
+		Target:        hostname,
+		Port:          uint16(port),
+		Version:       gosnmp.Version3,
+		Timeout:       time.Duration(timeout) * time.Second,
+		Retries:       retries,
+		SecurityModel: gosnmp.UserSecurityModel,
+		MsgFlags:      getSecurityLevel(securityLevel),
+		SecurityParameters: &gosnmp.UsmSecurityParameters{
+			UserName:                 securityUsername,
+			AuthenticationProtocol:   actualAuthProtocol,
+			AuthenticationPassphrase: actualAuthPassword,
+			PrivacyProtocol:          actualPrivProtocol,
+			PrivacyPassphrase:        actualPrivPassword,
+		},
+		MaxOids: math.MaxInt32,
+	}
+
+	self := Session{
+		snmp: snmp,
+	}
+
+	return self
 }
