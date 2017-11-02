@@ -1,8 +1,13 @@
 from collections import namedtuple
 
-from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+try:
+    from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+except:
+    NewSessionV1 = lambda *args, **kwargs: None
+    NewSessionV2c = lambda *args, **kwargs: None
+    NewSessionV3 = lambda *args, **kwargs: None
 
-SNMPVariable = namedtuple('SNMPVariable', ['oid', 'index', 'snmp_type', 'value'])
+SNMPVariable = namedtuple('SNMPVariable', ['oid', 'oid_index', 'snmp_type', 'value'])
 
 
 class UnknownSNMPTypeError(Exception):
@@ -22,41 +27,43 @@ class Session(object):
 
     @staticmethod
     def _handle_multi_result(multi_result):
-        oid = '.{0}'.format('.'.join(multi_result.OID.split('.')[0:-1]).strip('.'))
-        index = int(multi_result.OID.split('.')[-1])
+        raw_oid = multi_result.OID.strip('. ')
+
+        oid = '.{0}'.format('.'.join(raw_oid.split('.')[0:-1]).strip('.'))
+        oid_index = int(raw_oid.split('.')[-1])
 
         if multi_result.Type in ['noSuchInstance', 'noSuchObject', 'endOfMibView']:
             return SNMPVariable(
                 oid=oid,
-                index=index,
+                oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=None,
             )
         elif multi_result.Type in ['bool']:
             return SNMPVariable(
                 oid=oid,
-                index=index,
+                oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=multi_result.BoolValue,
             )
         elif multi_result.Type in ['int']:
             return SNMPVariable(
                 oid=oid,
-                index=index,
+                oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=multi_result.IntValue,
             )
         elif multi_result.Type in ['float']:
             return SNMPVariable(
                 oid=oid,
-                index=index,
+                oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=multi_result.FloatValue,
             )
         elif multi_result.Type in ['string']:
             return SNMPVariable(
                 oid=oid,
-                index=index,
+                oid_index=oid_index,
                 snmp_type=multi_result.Type,
                 value=multi_result.StringValue,
             )

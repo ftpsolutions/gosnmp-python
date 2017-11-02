@@ -135,7 +135,7 @@ _MULTI_RESULT_GARBAGE = MultiResult(
 
 _SNMP_VARIABLE = SNMPVariable(
     oid='.1.2.3',
-    index=4,
+    oid_index=4,
     snmp_type='string',
     value='some value',
 )
@@ -153,7 +153,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_NOSUCHINSTANCE
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='noSuchInstance', value=None)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='noSuchInstance', value=None)
             )
         )
 
@@ -162,7 +162,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_NOSUCHOBJECT
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='noSuchObject', value=None)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='noSuchObject', value=None)
             )
         )
 
@@ -171,7 +171,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_ENDOFMIBVIEW
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='endOfMibView', value=None)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='endOfMibView', value=None)
             )
         )
 
@@ -180,7 +180,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_BOOL
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='bool', value=True)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bool', value=True)
             )
         )
 
@@ -189,7 +189,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_INT
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='int', value=1337)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='int', value=1337)
             )
         )
 
@@ -198,7 +198,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_FLOAT
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='float', value=1.337)
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='float', value=1.337)
             )
         )
 
@@ -207,7 +207,7 @@ class SessionTest(unittest.TestCase):
                 _MULTI_RESULT_STRING
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='string', value='some string')
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some string')
             )
         )
 
@@ -225,7 +225,7 @@ class SessionTest(unittest.TestCase):
         assert_that(
             self._subject.get('1.2.3.4'),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='string', value='some value')
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
             )
         )
 
@@ -243,7 +243,7 @@ class SessionTest(unittest.TestCase):
         assert_that(
             self._subject.get_next('1.2.3.3'),
             equal_to(
-                SNMPVariable(oid='.1.2.3', index=4, snmp_type='string', value='some value')
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
             )
         )
 
