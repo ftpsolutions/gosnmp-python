@@ -3,3 +3,5 @@ pkg
 bin
 out
 src/github.com
+*.pyc
+*__pycache__

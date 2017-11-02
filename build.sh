@@ -14,7 +14,7 @@ fi
 
 export GOPATH=`pwd`
 
-echo "getting github.com/soniah/gosnmp"
+echo "getting github.com/soniah/gosnmp_python"
 go get -v github.com/soniah/gosnmp
 
 echo "getting gopy"
@@ -26,4 +26,4 @@ echo "building gopy"
 go build -a -x github.com/go-python/gopy
 
 echo "build gosnmp_python bindings"
-./gopy bind -lang="py2" -output="gosnmp" gosnmp_python
+gopy bind -lang="py2" -output="gosnmp_python" gosnmp_python
