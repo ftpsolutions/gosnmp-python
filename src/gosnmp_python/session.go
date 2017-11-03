@@ -3,7 +3,7 @@ package gosnmp_python
 import (
 	"time"
 	"math"
-	"github.com/soniah/gosnmp"
+	"github.com/initialed85/gosnmp"
 	"fmt"
 	"strings"
 	"errors"

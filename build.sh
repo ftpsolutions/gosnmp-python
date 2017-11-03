@@ -14,8 +14,8 @@ fi
 
 export GOPATH=`pwd`
 
-echo "getting github.com/soniah/gosnmp_python"
-go get -v github.com/soniah/gosnmp
+echo "getting github.com/initialed85/gosnmp"
+go get -v github.com/initialed85/gosnmp
 
 echo "getting gopy"
 go get -v github.com/go-python/gopy
