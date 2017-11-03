@@ -14,13 +14,13 @@ fi
 
 export GOPATH=`pwd`
 
+export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
+
 echo "getting github.com/initialed85/gosnmp"
 go get -v github.com/initialed85/gosnmp
 
 echo "getting gopy"
 go get -v github.com/go-python/gopy
-
-export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
 
 echo "building gopy"
 go build -a -x github.com/go-python/gopy
