@@ -50,7 +50,11 @@ session = create_snmpv2c_session(
     community='public',
 )
 
+session.connect()
+
 print session.get('.1.3.6.1.2.1.1.5.0')
+
+session.close()
 ```
 
 Which returns an object like this:
