@@ -278,7 +278,7 @@ func NewSessionV2c(hostname string, port int, community string, timeout, retries
 		Target:    hostname,
 		Port:      uint16(port),
 		Community: community,
-		Version:   gosnmp.Version1,
+		Version:   gosnmp.Version2c,
 		Timeout:   time.Duration(timeout) * time.Second,
 		Retries:   retries,
 		MaxOids:   math.MaxInt32,
