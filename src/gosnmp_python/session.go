@@ -1,5 +1,9 @@
 package gosnmp_python
 
+// #cgo pkg-config: python2
+// #include <Python.h>
+import "C" // this has to follow the above comments with no spaces
+
 import (
 	"time"
 	"math"
@@ -14,7 +18,7 @@ import (
 //
 
 type Session struct {
-	snmp *gosnmp.GoSNMP // this being private is critical for gopy!
+	snmp *gosnmp.GoSNMP // this has to be private
 }
 
 type MultiResult struct {
@@ -182,14 +186,24 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 //
 
 func (self *Session) Connect() error {
-	return self.snmp.Connect()
+	tState := C.PyEval_SaveThread()
+
+	err := self.snmp.Connect()
+
+	C.PyEval_RestoreThread(tState)
+
+	return err
 }
 
 func (self *Session) Get(oid string) (MultiResult, error) {
+	tState := C.PyEval_SaveThread()
+
 	emptyMultiResult := MultiResult{}
 
 	result, err := self.snmp.Get([]string{oid})
 	if err != nil {
+		C.PyEval_RestoreThread(tState)
+
 		return emptyMultiResult, err
 	}
 
@@ -199,17 +213,25 @@ func (self *Session) Get(oid string) (MultiResult, error) {
 		result.Variables[0].Value,
 	)
 	if err != nil {
+		C.PyEval_RestoreThread(tState)
+
 		return emptyMultiResult, err
 	}
+
+	C.PyEval_RestoreThread(tState)
 
 	return multiResult, nil
 }
 
 func (self *Session) GetNext(oid string) (MultiResult, error) {
+	tState := C.PyEval_SaveThread()
+
 	emptyMultiResult := MultiResult{}
 
 	result, err := self.snmp.GetNext([]string{oid})
 	if err != nil {
+		C.PyEval_RestoreThread(tState)
+
 		return emptyMultiResult, err
 	}
 
@@ -219,14 +241,24 @@ func (self *Session) GetNext(oid string) (MultiResult, error) {
 		result.Variables[0].Value,
 	)
 	if err != nil {
+		C.PyEval_RestoreThread(tState)
+
 		return emptyMultiResult, err
 	}
+
+	C.PyEval_RestoreThread(tState)
 
 	return multiResult, nil
 }
 
 func (self *Session) Close() error {
-	return self.snmp.Conn.Close()
+	tState := C.PyEval_SaveThread()
+
+	err := self.snmp.Conn.Close()
+
+	C.PyEval_RestoreThread(tState)
+
+	return err
 }
 
 //
@@ -234,6 +266,8 @@ func (self *Session) Close() error {
 //
 
 func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
+	tState := C.PyEval_SaveThread()
+
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -247,11 +281,15 @@ func NewSessionV1(hostname string, port int, community string, timeout, retries 
 	self := Session{
 		snmp: snmp,
 	}
+
+	C.PyEval_RestoreThread(tState)
 
 	return self
 }
 
 func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
+	tState := C.PyEval_SaveThread()
+
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -266,10 +304,14 @@ func NewSessionV2c(hostname string, port int, community string, timeout, retries
 		snmp: snmp,
 	}
 
+	C.PyEval_RestoreThread(tState)
+
 	return self
 }
 
 func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
+	tState := C.PyEval_SaveThread()
+
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
 
@@ -294,6 +336,8 @@ func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 	self := Session{
 		snmp: snmp,
 	}
+
+	C.PyEval_RestoreThread(tState)
 
 	return self
 }
