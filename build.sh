@@ -28,5 +28,5 @@ go build -a -x github.com/go-python/gopy
 echo "build gosnmp_python bindings"
 ./gopy bind -lang="py2" -output="gosnmp_python" gosnmp_python
 
-echo "running tests"
-py.test -v gosnmp_python
+# echo "running tests"
+# py.test -v gosnmp_python
