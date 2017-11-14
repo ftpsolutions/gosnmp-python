@@ -4,6 +4,12 @@ from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
 
 SNMPVariable = namedtuple('SNMPVariable', ['oid', 'oid_index', 'snmp_type', 'value'])
 
+_new_session_v1 = lambda *args: NewSessionV1(*args)
+
+_new_session_v2c = lambda *args: NewSessionV2c(*args)
+
+_new_session_v3 = lambda *args: NewSessionV3(*args)
+
 
 class UnknownSNMPTypeError(Exception):
     pass
@@ -97,12 +103,12 @@ class Session(object):
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
-    session = NewSessionV1(
-        hostname,
-        port,
-        community,
-        timeout,
-        retries,
+    session = _new_session_v1(
+        str(hostname),
+        int(port),
+        str(community),
+        int(timeout),
+        int(retries),
     )
 
     return Session(
@@ -111,12 +117,12 @@ def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
 
 
 def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
-    session = NewSessionV2c(
-        hostname,
-        port,
-        community,
-        timeout,
-        retries,
+    session = _new_session_v2c(
+        str(hostname),
+        int(port),
+        str(community),
+        int(timeout),
+        int(retries),
     )
 
     return Session(
@@ -126,17 +132,17 @@ def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
 
 def create_snmpv3_session(hostname, security_username, security_level, auth_password, auth_protocol, privacy_password,
                           privacy_protocol, port=161, timeout=5, retries=1):
-    session = NewSessionV3(
-        hostname,
-        port,
-        security_username,
-        privacy_password,
-        auth_password,
-        security_level,
-        auth_protocol,
-        privacy_protocol,
-        timeout,
-        retries,
+    session = _new_session_v3(
+        str(hostname),
+        int(port),
+        str(security_username),
+        str(privacy_password),
+        str(auth_password),
+        str(security_level),
+        str(auth_protocol),
+        str(privacy_protocol),
+        int(timeout),
+        int(retries),
     )
 
     return Session(
