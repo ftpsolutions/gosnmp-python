@@ -194,15 +194,19 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 //
 
 func (self *Session) Connect() error {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	return self.snmp.Connect()
 }
 
 func (self *Session) Get(oid string) (MultiResult, error) {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	emptyMultiResult := MultiResult{}
 
@@ -224,8 +228,10 @@ func (self *Session) Get(oid string) (MultiResult, error) {
 }
 
 func (self *Session) GetNext(oid string) (MultiResult, error) {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	emptyMultiResult := MultiResult{}
 
@@ -247,8 +253,10 @@ func (self *Session) GetNext(oid string) (MultiResult, error) {
 }
 
 func (self *Session) Close() error {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	return self.snmp.Conn.Close()
 }
@@ -258,8 +266,10 @@ func (self *Session) Close() error {
 //
 
 func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
@@ -279,8 +289,10 @@ func NewSessionV1(hostname string, port int, community string, timeout, retries 
 }
 
 func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
@@ -300,8 +312,10 @@ func NewSessionV2c(hostname string, port int, community string, timeout, retries
 }
 
 func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
-	tState := C.PyEval_SaveThread()
-	defer C.PyEval_RestoreThread(tState)
+	if C.PyEval_ThreadsInitialized() != 0 {
+		tState := C.PyEval_SaveThread()
+		defer C.PyEval_RestoreThread(tState)
+	}
 
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)

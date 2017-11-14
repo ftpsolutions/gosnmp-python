@@ -1,12 +1,15 @@
 from collections import namedtuple
 from sys import version as python_version
 
-if 'pypy' not in python_version.strip().lower():
-    from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
-else:
-    NewSessionV1 = lambda *args, **kwargs: None
-    NewSessionV2c = lambda *args, **kwargs: None
-    NewSessionV3 = lambda *args, **kwargs: None
+# if 'pypy' not in python_version.strip().lower():
+#     from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+# else:
+#     NewSessionV1 = lambda *args, **kwargs: None
+#     NewSessionV2c = lambda *args, **kwargs: None
+#     NewSessionV3 = lambda *args, **kwargs: None
+
+from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+
 
 SNMPVariable = namedtuple('SNMPVariable', ['oid', 'oid_index', 'snmp_type', 'value'])
 

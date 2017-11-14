@@ -16,17 +16,36 @@ export GOPATH=`pwd`
 
 export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
 
-echo "getting github.com/initialed85/gosnmp"
+echo "cleaning up output folder"
+rm -frv gosnmp_python/gosnmp_python.so
+rm -frv gosnmp_python/_gosnmp_python.so
+rm -frv gosnmp_python/gosnmp_python.py
+echo ""
+
+echo "getting gosnmp"
 go get -v github.com/initialed85/gosnmp
+echo ""
+
+echo "building gosnmp"
+go build -a github.com/initialed85/gosnmp
+echo ""
 
 echo "getting gopy"
 go get -v github.com/go-python/gopy
+echo ""
 
 echo "building gopy"
-go build -a -x github.com/go-python/gopy
+go build -a github.com/go-python/gopy
+echo ""
+
+echo "building gosnmp_python"
+go build -a gosnmp_python
+echo ""
 
 echo "build gosnmp_python bindings"
-./gopy bind -lang="py2" -output="gosnmp_python" gosnmp_python
+./gopy bind -lang="cffi" -output="gosnmp_python" gosnmp_python
+echo ""
 
-# echo "running tests"
-# py.test -v gosnmp_python
+echo "fix broken output from gopy (this is yuck)"
+sed "s/py_kwd_011, \[\]int/py_kwd_011, list/g" gosnmp_python/gosnmp_python.py > temp.py
+mv temp.py gosnmp_python/gosnmp_python.py
