@@ -66,11 +66,7 @@ class Session(object):
                 oid=oid,
                 oid_index=oid_index,
                 snmp_type=multi_result.Type,
-                value=''.join(
-                    [
-                        chr(int(x.strip(), 16)) for x in str(multi_result.ByteArray)[7:-1].strip().split(',')
-                    ]
-                ),
+                value=''.join([chr(x) for x in multi_result.ByteArray]),
             )
         elif multi_result.Type in ['string']:
             return SNMPVariable(

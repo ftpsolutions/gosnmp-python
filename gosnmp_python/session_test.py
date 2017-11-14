@@ -138,7 +138,7 @@ _MULTI_RESULT_BYTEARRAY = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{0x41, 0x42, 0x43, 0x44, 0x45, 0x46}',
+    ByteArray=[0x41, 0x42, 0x43, 0x44, 0x45, 0x46],
     StringValue='',
 )
 
