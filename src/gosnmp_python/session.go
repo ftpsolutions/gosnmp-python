@@ -37,7 +37,7 @@ type MultiResult struct {
 }
 
 //
-// helper methods
+// helper functions
 //
 
 func getSecurityLevel(securityLevel string) gosnmp.SnmpV3MsgFlags {
