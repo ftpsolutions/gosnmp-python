@@ -20,10 +20,12 @@ Right now I'm still working on how to put it all together as a Python module, so
 #### Prerequisites
 
 * Go 1.9
-* Python 2.7.13 or newer (Python 2.7.10 delivered with Mac OS doesn't seem to work)
+* Python 2.7.13 or newer (Python 2.7.10 delivered with Mac OS doesn't seem to work); pr
+* PyPy 5.9 or newer
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
+* Python cffi module (if using Python instead of PyPy)
 
 #### Setup (for dev)
 
