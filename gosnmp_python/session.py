@@ -31,20 +31,28 @@ class Session(object):
         )
 
     def connect(self):
-        return self._session.Connect()
+        return handle_exception(
+            self._session.Connect, ()
+        )
 
     def get(self, oid):
         return handle_multi_result(
-            handle_exception(self._session.Get, (oid,))
+            handle_exception(
+                self._session.Get, (oid,)
+            )
         )
 
     def get_next(self, oid):
         return handle_multi_result(
-            handle_exception(self._session.GetNext, (oid,))
+            handle_exception(
+                self._session.GetNext, (oid,)
+            )
         )
 
     def close(self):
-        return self._session.Close()
+        return handle_exception(
+            self._session.Close, ()
+        )
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):

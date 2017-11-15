@@ -5,3 +5,10 @@ out
 src/github.com
 *.pyc
 *__pycache__
+test*.py
+gosnmp_python.so
+_gosnmp_python.so
+gosnmp_python.py
+gopy
+prebuilt
+.cache

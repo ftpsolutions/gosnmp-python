@@ -33,7 +33,9 @@ class RPCSession(object):
         )
 
     def connect(self):
-        return RPCConnect(self._session_id)
+        return handle_exception(
+            RPCConnect, (self._session_id,)
+        )
 
     def get(self, oid):
         return handle_multi_result(
@@ -50,7 +52,9 @@ class RPCSession(object):
         )
 
     def close(self):
-        return RPCClose(self._session_id)
+        return handle_exception(
+            RPCClose, (self._session_id,)
+        )
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
