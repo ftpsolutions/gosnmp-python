@@ -17,9 +17,12 @@ export GOPATH=`pwd`
 export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
 
 echo "cleaning up output folder"
-rm -frv gosnmp_python/gosnmp_python.so
-rm -frv gosnmp_python/_gosnmp_python.so
-rm -frv gosnmp_python/gosnmp_python.py
+rm -frv gosnmp_python/*.pyc
+rm -frv gosnmp_python/py2/*.pyc
+rm -frv gosnmp_python/py2/gosnmp_python.so
+rm -frv gosnmp_python/cffi/*.pyc
+rm -frv gosnmp_python/cffi/_gosnmp_python.so
+rm -frv gosnmp_python/cffi/gosnmp_python.py
 echo ""
 
 echo "getting gosnmp"
@@ -42,10 +45,14 @@ echo "building gosnmp_python"
 go build -a gosnmp_python
 echo ""
 
-echo "build gosnmp_python bindings"
-./gopy bind -lang="cffi" -output="gosnmp_python" gosnmp_python
+echo "build gosnmp_python bindings for py2"
+./gopy bind -lang="py2" -output="gosnmp_python/py2" gosnmp_python
 echo ""
 
-echo "fix broken output from gopy (this is yuck)"
-sed "s/py_kwd_011, \[\]int/py_kwd_011, list/g" gosnmp_python/gosnmp_python.py > temp.py
-mv temp.py gosnmp_python/gosnmp_python.py
+echo "build gosnmp_python bindings for cffi"
+./gopy bind -lang="cffi" -output="gosnmp_python/cffi" gosnmp_python
+echo ""
+
+echo "fix broken cffi output (this is yuck)"
+sed "s/py_kwd_011, \[\]int/py_kwd_011, list/g" gosnmp_python/cffi/gosnmp_python.py > temp.py
+mv temp.py gosnmp_python/cffi/gosnmp_python.py

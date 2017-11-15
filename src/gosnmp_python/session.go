@@ -2,7 +2,6 @@ package gosnmp_python
 
 // #cgo pkg-config: python2
 // #include <Python.h>
-import "C" // this has to follow the above comments with no spaces
 
 import (
 	"time"
@@ -11,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 	"errors"
+	"encoding/json"
 )
 
 // structs
@@ -188,20 +188,10 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 // public methods
 
 func (self *Session) Connect() error {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
-
 	return self.snmp.Connect()
 }
 
 func (self *Session) Get(oid string) (MultiResult, error) {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
-
 	emptyMultiResult := MultiResult{}
 
 	result, err := self.snmp.Get([]string{oid})
@@ -221,12 +211,30 @@ func (self *Session) Get(oid string) (MultiResult, error) {
 	return multiResult, nil
 }
 
-func (self *Session) GetNext(oid string) (MultiResult, error) {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
+func (self *Session) GetJSON(oid string) (string, error) {
+	result, err := self.snmp.Get([]string{oid})
+	if err != nil {
+		return "", err
 	}
 
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (self *Session) GetNext(oid string) (MultiResult, error) {
 	emptyMultiResult := MultiResult{}
 
 	result, err := self.snmp.GetNext([]string{oid})
@@ -246,12 +254,30 @@ func (self *Session) GetNext(oid string) (MultiResult, error) {
 	return multiResult, nil
 }
 
-func (self *Session) Close() error {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
+func (self *Session) GetNextJSON(oid string) (string, error) {
+	result, err := self.snmp.GetNext([]string{oid})
+	if err != nil {
+		return "", err
 	}
 
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (self *Session) Close() error {
 	err := self.snmp.Conn.Close()
 
 	self.snmp = nil // seems to be important for Go's garbage collector
@@ -262,11 +288,6 @@ func (self *Session) Close() error {
 // constructors
 
 func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
-
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -285,11 +306,6 @@ func NewSessionV1(hostname string, port int, community string, timeout, retries 
 }
 
 func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
-
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -308,11 +324,6 @@ func NewSessionV2c(hostname string, port int, community string, timeout, retries
 }
 
 func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
-
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
 

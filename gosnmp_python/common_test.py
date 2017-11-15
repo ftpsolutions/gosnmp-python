@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from hamcrest import assert_that, equal_to, calling, raises
 
-from common import SNMPVariable, handle_multi_result, UnknownSNMPTypeError
+from common import SNMPVariable, handle_multi_result, handle_multi_result_json, UnknownSNMPTypeError
 
 # this is what comes across the border from Go for .Get and .GetNext
 MultiResult = namedtuple('MultiResult', [
@@ -21,6 +21,9 @@ MultiResult = namedtuple('MultiResult', [
     'StringValue',
 ])
 
+# this is what comes across the border from Go for .GetJSON and .GetNextJSON
+_MULTI_RESULT_JSON_STRING = '{"OID":".1.2.3.4","Type":"string","IsNull":false,"IsUnknown":false,"IsNoSuchInstance":false,"IsNoSuchObject":false,"IsEndOfMibView":false,"BoolValue":false,"IntValue":0,"FloatValue":0,"ByteArray":[],"StringValue":"some string"}'
+
 _MULTI_RESULT_NOSUCHINSTANCE = MultiResult(
     OID='.1.2.3.4',
     Type='noSuchInstance',
@@ -32,7 +35,7 @@ _MULTI_RESULT_NOSUCHINSTANCE = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -47,7 +50,7 @@ _MULTI_RESULT_NOSUCHOBJECT = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -62,7 +65,7 @@ _MULTI_RESULT_ENDOFMIBVIEW = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -77,7 +80,7 @@ _MULTI_RESULT_BOOL = MultiResult(
     BoolValue=True,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -92,7 +95,7 @@ _MULTI_RESULT_INT = MultiResult(
     BoolValue=False,
     IntValue=1337,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -107,7 +110,7 @@ _MULTI_RESULT_FLOAT = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=1.337,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -122,7 +125,7 @@ _MULTI_RESULT_STRING = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='some string',
 )
 
@@ -152,7 +155,7 @@ _MULTI_RESULT_GARBAGE = MultiResult(
     BoolValue=False,
     IntValue=0,
     FloatValue=0.0,
-    ByteArray='[]byte{}',
+    ByteArray=[],
     StringValue='',
 )
 
@@ -175,72 +178,78 @@ class FunctionsTest(unittest.TestCase):
             )
         )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_NOSUCHOBJECT
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='noSuchObject', value=None)
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_NOSUCHOBJECT
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='noSuchObject', value=None)
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_ENDOFMIBVIEW
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='endOfMibView', value=None)
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_ENDOFMIBVIEW
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='endOfMibView', value=None)
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_BOOL
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bool', value=True)
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_BOOL
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bool', value=True)
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_INT
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='int', value=1337)
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_INT
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='int', value=1337)
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_FLOAT
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='float', value=1.337)
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_FLOAT
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='float', value=1.337)
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_BYTEARRAY
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bytearray', value='ABCDEF')
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_BYTEARRAY
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bytearray', value='ABCDEF')
+            )
         )
-    )
 
-    assert_that(
-        handle_multi_result(
-            _MULTI_RESULT_STRING
-        ),
-        equal_to(
-            SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some string')
+        assert_that(
+            handle_multi_result(
+                _MULTI_RESULT_STRING
+            ),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some string')
+            )
         )
-    )
 
-    assert_that(
-        calling(handle_multi_result).with_args(
-            _MULTI_RESULT_GARBAGE
-        ),
-        raises(UnknownSNMPTypeError)
-    )
+        assert_that(
+            calling(handle_multi_result).with_args(
+                _MULTI_RESULT_GARBAGE
+            ),
+            raises(UnknownSNMPTypeError)
+        )
+
+    def test_handle_multi_result_json(self):
+        assert_that(
+            handle_multi_result_json(_MULTI_RESULT_JSON_STRING),
+            equal_to(_MULTI_RESULT_STRING)
+        )

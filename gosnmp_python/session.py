@@ -1,5 +1,11 @@
+from sys import version as python_version
+
 from common import handle_exception, handle_multi_result
-from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+
+if 'pypy' not in python_version.strip().lower():
+    from py2.gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+else:
+    from cffi.gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
 
 
 def _new_session_v1(*args):

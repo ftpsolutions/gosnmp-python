@@ -2,12 +2,16 @@ package gosnmp_python
 
 // #cgo pkg-config: python2
 // #include <Python.h>
-import "C"
+
 import (
 	"sync"
 	"errors"
 	"fmt"
-) // this has to follow the above comments with no spaces
+)
+
+import (
+	_ "net/http/pprof"
+)
 
 var mutex sync.Mutex
 var sessions map[uint64]*Session
@@ -22,10 +26,8 @@ func init() {
 // constructors
 
 func NewRPCSessionV1(hostname string, port int, community string, timeout, retries int) uint64 {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := NewSessionV1(
 		hostname,
@@ -45,10 +47,8 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 }
 
 func NewRPCSessionV2c(hostname string, port int, community string, timeout, retries int) uint64 {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := NewSessionV2c(
 		hostname,
@@ -68,10 +68,8 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 }
 
 func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) uint64 {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := NewSessionV3(
 		hostname,
@@ -98,10 +96,8 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 // public functions
 
 func RPCConnect(sessionId uint64) error {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	mutex.Lock()
 	val, ok := sessions[sessionId]
@@ -115,10 +111,8 @@ func RPCConnect(sessionId uint64) error {
 }
 
 func RPCGet(sessionId uint64, oid string) (MultiResult, error) {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	mutex.Lock()
 	val, ok := sessions[sessionId]
@@ -131,11 +125,24 @@ func RPCGet(sessionId uint64, oid string) (MultiResult, error) {
 	return MultiResult{}, errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
 }
 
-func RPCGetNext(sessionId uint64, oid string) (MultiResult, error) {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
+func RPCGetJSON(sessionId uint64, oid string) (string, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
+
+	mutex.Lock()
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
+		return val.GetJSON(oid)
 	}
+
+	return "", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
+}
+
+func RPCGetNext(sessionId uint64, oid string) (MultiResult, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	mutex.Lock()
 	val, ok := sessions[sessionId]
@@ -148,11 +155,24 @@ func RPCGetNext(sessionId uint64, oid string) (MultiResult, error) {
 	return MultiResult{}, errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
 }
 
-func RPCClose(sessionId uint64) error {
-	if C.PyEval_ThreadsInitialized() != 0 {
-		tState := C.PyEval_SaveThread()
-		defer C.PyEval_RestoreThread(tState)
+func RPCGetNextJSON(sessionId uint64, oid string) (string, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
+
+	mutex.Lock()
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
+		return val.GetNextJSON(oid)
 	}
+
+	return "", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
+}
+
+func RPCClose(sessionId uint64) error {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	mutex.Lock()
 	val, ok := sessions[sessionId]

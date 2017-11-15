@@ -1,6 +1,30 @@
+import json
+
 from collections import namedtuple
 
-SNMPVariable = namedtuple('SNMPVariable', ['oid', 'oid_index', 'snmp_type', 'value'])
+SNMPVariable = namedtuple(
+    'SNMPVariable', [
+        'oid',
+        'oid_index',
+        'snmp_type',
+        'value'
+    ]
+)
+
+MultiResult = namedtuple('MultiResult', [
+    'OID',
+    'Type',
+    'IsNull',
+    'IsUnknown',
+    'IsNoSuchInstance',
+    'IsNoSuchObject',
+    'IsEndOfMibView',
+    'BoolValue',
+    'IntValue',
+    'FloatValue',
+    'ByteArray',
+    'StringValue',
+])
 
 
 class UnknownSNMPTypeError(Exception):
@@ -18,6 +42,12 @@ def handle_exception(method, args):
         raise GoRuntimeError('{0} raised on Go side while calling {1} with args {2}'.format(
             repr(e), method, repr(args),
         ))
+
+
+def handle_multi_result_json(multi_result_json_string):
+    multi_result_json = json.loads(multi_result_json_string)
+
+    return MultiResult(**multi_result_json)
 
 
 def handle_multi_result(multi_result):
