@@ -156,7 +156,9 @@ func RPCClose(sessionId uint64) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if val, ok := sessions[sessionId]; ok {
-		return val.Close()
+		err := val.Close()
+		delete(sessions, sessionId)
+		return err
 	}
 
 	return errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
