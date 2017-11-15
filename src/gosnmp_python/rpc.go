@@ -157,6 +157,7 @@ func RPCClose(sessionId uint64) error {
 	defer mutex.Unlock()
 	if val, ok := sessions[sessionId]; ok {
 		err := val.Close()
+		sessions[sessionId] = nil
 		delete(sessions, sessionId)
 		return err
 	}
