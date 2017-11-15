@@ -35,13 +35,11 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 		retries,
 	)
 
-	sessionId := lastSessionId
-
 	mutex.Lock()
+	sessionId := lastSessionId
 	sessions[sessionId] = &session
-	mutex.Unlock()
-
 	lastSessionId++
+	mutex.Unlock()
 
 	return sessionId
 }
@@ -60,13 +58,11 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 		retries,
 	)
 
-	sessionId := lastSessionId
-
 	mutex.Lock()
+	sessionId := lastSessionId
 	sessions[sessionId] = &session
-	mutex.Unlock()
-
 	lastSessionId++
+	mutex.Unlock()
 
 	return sessionId
 }
@@ -90,13 +86,11 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 		retries,
 	)
 
-	sessionId := lastSessionId
-
 	mutex.Lock()
+	sessionId := lastSessionId
 	sessions[sessionId] = &session
-	mutex.Unlock()
-
 	lastSessionId++
+	mutex.Unlock()
 
 	return sessionId
 }
@@ -110,8 +104,10 @@ func RPCConnect(sessionId uint64) error {
 	}
 
 	mutex.Lock()
-	defer mutex.Unlock()
-	if val, ok := sessions[sessionId]; ok {
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
 		return val.Connect()
 	}
 
@@ -125,10 +121,13 @@ func RPCGet(sessionId uint64, oid string) (MultiResult, error) {
 	}
 
 	mutex.Lock()
-	defer mutex.Unlock()
-	if val, ok := sessions[sessionId]; ok {
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
 		return val.Get(oid)
 	}
+
 	return MultiResult{}, errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
 }
 
@@ -139,8 +138,10 @@ func RPCGetNext(sessionId uint64, oid string) (MultiResult, error) {
 	}
 
 	mutex.Lock()
-	defer mutex.Unlock()
-	if val, ok := sessions[sessionId]; ok {
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
 		return val.GetNext(oid)
 	}
 
@@ -154,13 +155,18 @@ func RPCClose(sessionId uint64) error {
 	}
 
 	mutex.Lock()
-	defer mutex.Unlock()
-	if val, ok := sessions[sessionId]; ok {
+	val, ok := sessions[sessionId]
+	mutex.Unlock()
+
+	if ok {
 		err := val.Close()
-		sessions[sessionId] = nil
+
+		mutex.Lock()
 		delete(sessions, sessionId)
+		mutex.Unlock()
+
 		return err
 	}
 
-	return errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
+	return errors.New(fmt.Sprintf("sessionId %v does not exist; only %v", sessionId, sessions))
 }
