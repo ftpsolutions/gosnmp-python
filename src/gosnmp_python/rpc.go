@@ -15,7 +15,7 @@ var lastSessionId uint64 = 0
 
 // initialiser
 
-func Init() {
+func init() {
 	sessions = make(map[uint64]*Session)
 }
 

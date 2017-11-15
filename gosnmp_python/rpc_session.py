@@ -1,5 +1,5 @@
 from common import SNMPVariable, UnknownSNMPTypeError, GoRuntimeError
-from gosnmp_python import Init, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, RPCGetNext, \
+from gosnmp_python import NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, RPCGetNext, \
     RPCClose
 
 _new_rpc_session_v1 = lambda *args: NewRPCSessionV1(*args)
@@ -7,8 +7,6 @@ _new_rpc_session_v1 = lambda *args: NewRPCSessionV1(*args)
 _new_rpc_session_v2c = lambda *args: NewRPCSessionV2c(*args)
 
 _new_rpc_session_v3 = lambda *args: NewRPCSessionV3(*args)
-
-Init()
 
 
 class RPCSession(object):
