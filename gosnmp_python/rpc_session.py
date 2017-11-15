@@ -1,19 +1,22 @@
 from common import SNMPVariable, UnknownSNMPTypeError, GoRuntimeError
-from gosnmp_python import NewSessionV1, NewSessionV2c, NewSessionV3
+from gosnmp_python import Init, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, RPCGetNext, \
+    RPCClose
 
-_new_session_v1 = lambda *args: NewSessionV1(*args)
+_new_rpc_session_v1 = lambda *args: NewRPCSessionV1(*args)
 
-_new_session_v2c = lambda *args: NewSessionV2c(*args)
+_new_rpc_session_v2c = lambda *args: NewRPCSessionV2c(*args)
 
-_new_session_v3 = lambda *args: NewSessionV3(*args)
+_new_rpc_session_v3 = lambda *args: NewRPCSessionV3(*args)
+
+Init()
 
 
-class Session(object):
-    def __init__(self, session):
-        self._session = session
+class RPCSession(object):
+    def __init__(self, session_id):
+        self._session_id = session_id
 
     def connect(self):
-        return self._session.Connect()
+        return RPCConnect(self._session_id)
 
     @staticmethod
     def _handle_multi_result(multi_result):
@@ -71,7 +74,7 @@ class Session(object):
 
     def _handle_exception(self, method, oid):
         try:
-            return method(oid)
+            return method(self._session_id, oid)
         except RuntimeError as e:
             raise GoRuntimeError('{0} raised on Go side while calling {1} with oid {2}'.format(
                 repr(e), method, repr(oid),
@@ -79,20 +82,20 @@ class Session(object):
 
     def get(self, oid):
         return self._handle_multi_result(
-            self._handle_exception(self._session.Get, oid)
+            self._handle_exception(RPCGet, oid)
         )
 
     def get_next(self, oid):
         return self._handle_multi_result(
-            self._handle_exception(self._session.GetNext, oid)
+            self._handle_exception(RPCGetNext, oid)
         )
 
     def close(self):
-        return self._session.Close()
+        return RPCClose(self._session_id)
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
-    session = _new_session_v1(
+    session_id = _new_rpc_session_v1(
         str(hostname),
         int(port),
         str(community),
@@ -100,13 +103,13 @@ def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
         int(retries),
     )
 
-    return Session(
-        session=session,
+    return RPCSession(
+        session_id=session_id,
     )
 
 
 def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
-    session = _new_session_v2c(
+    session_id = _new_rpc_session_v2c(
         str(hostname),
         int(port),
         str(community),
@@ -114,14 +117,14 @@ def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
         int(retries),
     )
 
-    return Session(
-        session=session,
+    return RPCSession(
+        session_id=session_id,
     )
 
 
 def create_snmpv3_session(hostname, security_username, security_level, auth_password, auth_protocol, privacy_password,
                           privacy_protocol, port=161, timeout=5, retries=1):
-    session = _new_session_v3(
+    session_id = _new_rpc_session_v3(
         str(hostname),
         int(port),
         str(security_username),
@@ -134,6 +137,6 @@ def create_snmpv3_session(hostname, security_username, security_level, auth_pass
         int(retries),
     )
 
-    return Session(
-        session=session,
+    return RPCSession(
+        session_id=session_id,
     )

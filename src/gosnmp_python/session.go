@@ -13,9 +13,7 @@ import (
 	"errors"
 )
 
-//
 // structs
-//
 
 type Session struct {
 	snmp *gosnmp.GoSNMP // this has to be private
@@ -36,9 +34,7 @@ type MultiResult struct {
 	StringValue      string
 }
 
-//
 // helper functions
-//
 
 func getSecurityLevel(securityLevel string) gosnmp.SnmpV3MsgFlags {
 	securityLevel = strings.ToLower(securityLevel)
@@ -189,9 +185,7 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	)
 }
 
-//
 // public methods
-//
 
 func (self *Session) Connect() error {
 	if C.PyEval_ThreadsInitialized() != 0 {
@@ -258,12 +252,14 @@ func (self *Session) Close() error {
 		defer C.PyEval_RestoreThread(tState)
 	}
 
-	return self.snmp.Conn.Close()
+	err := self.snmp.Conn.Close()
+
+	self.snmp = nil // seems to be important for Go's garbage collector
+
+	return err
 }
 
-//
 // constructors
-//
 
 func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
 	if C.PyEval_ThreadsInitialized() != 0 {
