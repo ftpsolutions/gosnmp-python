@@ -12,6 +12,8 @@ It was made very easy with the help of the Golang
 * Doesn't seem to work with Python any more (after the CFFI change)
 * Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
 * I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)
+* PyPy seems to have memory problems (particularly when closing/opening lots of sessions in multiple threads)
+    * I've put lots of mutexes in that apply only when PyPy is running- still seems flaky
 
 #### How do I make use of this?
 
@@ -41,7 +43,7 @@ Right now I'm still working on how to put it all together as a Python module, so
   it doesn't seem to be used by PyPy and has odd behaviour with Python depending on the version,
   you may want to remove it altogether or try and make it work properly (if you use Python).
 
-#### Example Go Session usage (complex Session struct and MultiResult struct)
+#### Example Go Session usage (complex Session struct, calls return MultiResult struct)
 
 ```
 package main
@@ -79,7 +81,7 @@ func main() {
 }
 ```
 
-#### Example Go RPCSession usage (only primitive types dealt with)
+#### Example Go RPCSession usage (simple session ID, calls return JSON)
 
 ```
 package main
@@ -104,7 +106,7 @@ func main() {
         panic(err)
     }
     
-    multiResult, err := session.GetJSON(".1.3.6.1.2.1.1.5.0")
+    multiResult, err := session.Get(".1.3.6.1.2.1.1.5.0")
     if err != nil {
         panic(err)
     }
@@ -117,7 +119,7 @@ func main() {
 }
 ```
 
-#### Example Python usage (uses RPCSession underneath because of memory leaks between Go-C-Python)
+#### Example Python usage (uses RPCSession underneath because of memory leaks between Go and Python with structs)
 
 To create an SNMPv2 session in Python do the following:
 

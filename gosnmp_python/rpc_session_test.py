@@ -15,7 +15,7 @@ class SessionTest(unittest.TestCase):
             session_id=0,
         )
 
-    @patch('gosnmp_python.rpc_session.RPCGetJSON')
+    @patch('gosnmp_python.rpc_session.RPCGet')
     @patch('gosnmp_python.rpc_session.handle_multi_result')
     @patch('gosnmp_python.rpc_session.handle_multi_result_json')
     def test_get(self, handle_multi_result_json, handle_multi_result, rpc_get):
@@ -35,7 +35,7 @@ class SessionTest(unittest.TestCase):
             ])
         )
 
-    @patch('gosnmp_python.rpc_session.RPCGetNextJSON')
+    @patch('gosnmp_python.rpc_session.RPCGetNext')
     @patch('gosnmp_python.rpc_session.handle_multi_result')
     @patch('gosnmp_python.rpc_session.handle_multi_result_json')
     def test_get_next(self, handle_multi_result_json, handle_multi_result, rpc_get_next):

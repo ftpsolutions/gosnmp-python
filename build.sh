@@ -25,25 +25,27 @@ rm -frv gosnmp_python/cffi/_gosnmp_python.so
 rm -frv gosnmp_python/cffi/gosnmp_python.py
 echo ""
 
-echo "getting gosnmp"
-go get -v github.com/initialed85/gosnmp
-echo ""
+if [[ "$1" != "fast" ]]; then
+    echo "getting gosnmp"
+    go get -v github.com/initialed85/gosnmp
+    echo ""
 
-echo "building gosnmp"
-go build -a github.com/initialed85/gosnmp
-echo ""
+    echo "building gosnmp"
+    go build -a github.com/initialed85/gosnmp
+    echo ""
 
-echo "getting gopy"
-go get -v github.com/go-python/gopy
-echo ""
+    echo "getting gopy"
+    go get -v github.com/go-python/gopy
+    echo ""
 
-echo "building gopy"
-go build -a github.com/go-python/gopy
-echo ""
+    echo "building gopy"
+    go build -a github.com/go-python/gopy
+    echo ""
 
-echo "building gosnmp_python"
-go build -a gosnmp_python
-echo ""
+    echo "building gosnmp_python"
+    go build -a gosnmp_python
+    echo ""
+fi
 
 echo "build gosnmp_python bindings for py2"
 ./gopy bind -lang="py2" -output="gosnmp_python/py2" gosnmp_python

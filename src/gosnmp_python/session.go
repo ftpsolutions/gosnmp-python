@@ -15,11 +15,11 @@ import (
 
 // structs
 
-type Session struct {
+type session struct {
 	snmp *gosnmp.GoSNMP // this has to be private
 }
 
-type MultiResult struct {
+type multiResult struct {
 	OID              string
 	Type             string
 	IsNull           bool
@@ -90,8 +90,8 @@ func getAuthenticationDetails(AuthenticationPassword, AuthenticationProtocol str
 	return AuthenticationPassword, actualAuthenticationProtocol
 }
 
-func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (MultiResult, error) {
-	multiResult := MultiResult{
+func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (multiResult, error) {
+	multiResult := multiResult{
 		OID:              oid,
 		Type:             "",
 		IsNull:           false,
@@ -187,12 +187,12 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 
 // public methods
 
-func (self *Session) Connect() error {
+func (self *session) connect() error {
 	return self.snmp.Connect()
 }
 
-func (self *Session) Get(oid string) (MultiResult, error) {
-	emptyMultiResult := MultiResult{}
+func (self *session) get(oid string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
 
 	result, err := self.snmp.Get([]string{oid})
 	if err != nil {
@@ -211,10 +211,10 @@ func (self *Session) Get(oid string) (MultiResult, error) {
 	return multiResult, nil
 }
 
-func (self *Session) GetJSON(oid string) (string, error) {
+func (self *session) getJSON(oid string) (string, error) {
 	result, err := self.snmp.Get([]string{oid})
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	multiResult, err := buildMultiResult(
@@ -223,19 +223,19 @@ func (self *Session) GetJSON(oid string) (string, error) {
 		result.Variables[0].Value,
 	)
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	multiResultBytes, err := json.Marshal(multiResult)
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	return string(multiResultBytes), nil
 }
 
-func (self *Session) GetNext(oid string) (MultiResult, error) {
-	emptyMultiResult := MultiResult{}
+func (self *session) getNext(oid string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
 
 	result, err := self.snmp.GetNext([]string{oid})
 	if err != nil {
@@ -254,10 +254,10 @@ func (self *Session) GetNext(oid string) (MultiResult, error) {
 	return multiResult, nil
 }
 
-func (self *Session) GetNextJSON(oid string) (string, error) {
+func (self *session) getNextJSON(oid string) (string, error) {
 	result, err := self.snmp.GetNext([]string{oid})
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	multiResult, err := buildMultiResult(
@@ -266,18 +266,18 @@ func (self *Session) GetNextJSON(oid string) (string, error) {
 		result.Variables[0].Value,
 	)
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	multiResultBytes, err := json.Marshal(multiResult)
 	if err != nil {
-		return "", err
+		return "{}", err
 	}
 
 	return string(multiResultBytes), nil
 }
 
-func (self *Session) Close() error {
+func (self *session) close() error {
 	err := self.snmp.Conn.Close()
 
 	self.snmp = nil // seems to be important for Go's garbage collector
@@ -287,7 +287,7 @@ func (self *Session) Close() error {
 
 // constructors
 
-func NewSessionV1(hostname string, port int, community string, timeout, retries int) Session {
+func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -298,14 +298,14 @@ func NewSessionV1(hostname string, port int, community string, timeout, retries 
 		MaxOids:   math.MaxInt32,
 	}
 
-	self := Session{
+	self := session{
 		snmp: snmp,
 	}
 
 	return self
 }
 
-func NewSessionV2c(hostname string, port int, community string, timeout, retries int) (Session) {
+func newSessionV2c(hostname string, port int, community string, timeout, retries int) (session) {
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -316,14 +316,14 @@ func NewSessionV2c(hostname string, port int, community string, timeout, retries
 		MaxOids:   math.MaxInt32,
 	}
 
-	self := Session{
+	self := session{
 		snmp: snmp,
 	}
 
 	return self
 }
 
-func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) Session {
+func newSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) session {
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
 
@@ -345,7 +345,7 @@ func NewSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 		MaxOids: math.MaxInt32,
 	}
 
-	self := Session{
+	self := session{
 		snmp: snmp,
 	}
 
