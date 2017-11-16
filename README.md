@@ -20,7 +20,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 #### Prerequisites
 
 * Go 1.9
-* PyPy 5.9 or newer
+* Python 2.7.14+, or PyPy 5.9+ (PyPy is a bit unstable at the moment)
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
@@ -117,7 +117,7 @@ func main() {
 }
 ```
 
-#### Example Python usage
+#### Example Python usage (uses RPCSession underneath because of memory leaks between Go-C-Python)
 
 To create an SNMPv2 session in Python do the following:
 
