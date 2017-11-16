@@ -4,16 +4,16 @@ package gosnmp_python
 // #include <Python.h>
 
 import (
-	"sync"
 	"errors"
 	"fmt"
 )
 
 import (
 	_ "net/http/pprof"
+	"sync"
 )
 
-var mutex sync.Mutex
+var mutex sync.RWMutex
 var sessions map[uint64]*Session
 var lastSessionId uint64 = 0
 
@@ -29,6 +29,7 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
+	mutex.Lock()
 	session := NewSessionV1(
 		hostname,
 		port,
@@ -36,12 +37,16 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 		timeout,
 		retries,
 	)
+	mutex.Unlock()
 
 	mutex.Lock()
 	sessionId := lastSessionId
-	sessions[sessionId] = &session
 	lastSessionId++
 	mutex.Unlock()
+
+	mutex.RLock()
+	sessions[sessionId] = &session
+	mutex.RUnlock()
 
 	return sessionId
 }
@@ -50,6 +55,7 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
+	mutex.Lock()
 	session := NewSessionV2c(
 		hostname,
 		port,
@@ -57,11 +63,15 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 		timeout,
 		retries,
 	)
+	mutex.Unlock()
 
 	mutex.Lock()
 	sessionId := lastSessionId
-	sessions[sessionId] = &session
 	lastSessionId++
+	mutex.Unlock()
+
+	mutex.Lock()
+	sessions[sessionId] = &session
 	mutex.Unlock()
 
 	return sessionId
@@ -71,6 +81,7 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
+	mutex.Lock()
 	session := NewSessionV3(
 		hostname,
 		port,
@@ -83,12 +94,16 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 		timeout,
 		retries,
 	)
+	mutex.Unlock()
 
 	mutex.Lock()
 	sessionId := lastSessionId
-	sessions[sessionId] = &session
 	lastSessionId++
 	mutex.Unlock()
+
+	mutex.RLock()
+	sessions[sessionId] = &session
+	mutex.RUnlock()
 
 	return sessionId
 }
@@ -99,9 +114,9 @@ func RPCConnect(sessionId uint64) error {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		return val.Connect()
@@ -114,9 +129,9 @@ func RPCGet(sessionId uint64, oid string) (MultiResult, error) {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		return val.Get(oid)
@@ -129,24 +144,24 @@ func RPCGetJSON(sessionId uint64, oid string) (string, error) {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		return val.GetJSON(oid)
 	}
 
-	return "", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
+	return "{}", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
 }
 
 func RPCGetNext(sessionId uint64, oid string) (MultiResult, error) {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		return val.GetNext(oid)
@@ -159,24 +174,24 @@ func RPCGetNextJSON(sessionId uint64, oid string) (string, error) {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		return val.GetNextJSON(oid)
 	}
 
-	return "", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
+	return "{}", errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
 }
 
 func RPCClose(sessionId uint64) error {
 	tState := releaseGIL()
 	defer reacquireGIL(tState)
 
-	mutex.Lock()
+	mutex.RLock()
 	val, ok := sessions[sessionId]
-	mutex.Unlock()
+	mutex.RUnlock()
 
 	if ok {
 		err := val.Close()

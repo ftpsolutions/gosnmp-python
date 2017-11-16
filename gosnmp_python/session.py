@@ -9,15 +9,21 @@ else:
 
 
 def _new_session_v1(*args):
-    return NewSessionV1(*args)
+    return handle_exception(
+        NewSessionV1, args
+    )
 
 
 def _new_session_v2c(*args):
-    return NewSessionV2c(*args)
+    return handle_exception(
+        NewSessionV2c, args
+    )
 
 
 def _new_session_v3(*args):
-    return NewSessionV3(*args)
+    return handle_exception(
+        NewSessionV3, args
+    )
 
 
 class Session(object):

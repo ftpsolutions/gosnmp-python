@@ -11,15 +11,21 @@ else:
 
 
 def _new_rpc_session_v1(*args):
-    return NewRPCSessionV1(*args)
+    return handle_exception(
+        NewRPCSessionV1, args
+    )
 
 
 def _new_rpc_session_v2c(*args):
-    return NewRPCSessionV2c(*args)
+    return handle_exception(
+        NewRPCSessionV2c, args
+    )
 
 
 def _new_rpc_session_v3(*args):
-    return NewRPCSessionV3(*args)
+    return handle_exception(
+        NewRPCSessionV3, args
+    )
 
 
 class RPCSession(object):
