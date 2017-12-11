@@ -43,78 +43,45 @@ Right now I'm still working on how to put it all together as a Python module, so
   it doesn't seem to be used by PyPy and has odd behaviour with Python depending on the version,
   you may want to remove it altogether or try and make it work properly (if you use Python).
 
-#### Example Go Session usage (complex Session struct, calls return MultiResult struct)
-
-```
-package main
-
-import (
-    "fmt"
-    "gosnmp_python"
-)
-
-func main() {
-
-    session := gosnmp_python.NewSessionv2c(
-        "1.2.3.4"
-        161
-        "public"
-        5
-        1
-    )
-    
-    err := session.Connect()
-    if err != nil {
-        panic(err)
-    }
-    
-    multiResult, err := session.Get(".1.3.6.1.2.1.1.5.0")
-    if err != nil {
-        panic(err)
-    }
-    
-    session.Close()
-    if err != nil {
-        panic(err)
-    }
-
-}
-```
-
 #### Example Go RPCSession usage (simple session ID, calls return JSON)
 
+There's no real reason why you'd want to do this (just use gosnmp on it's own)- it's more 
+for reference:
+
 ```
 package main
 
 import (
-    "fmt"
-    "gosnmp_python"
+	"gosnmp_python"
+	"fmt"
 )
 
 func main() {
 
-    session := gosnmp_python.NewRPCSessionv2c(
-        "1.2.3.4"
-        161
-        "public"
-        5
-        1
-    )
-    
-    err := session.Connect()
-    if err != nil {
-        panic(err)
-    }
-    
-    multiResult, err := session.Get(".1.3.6.1.2.1.1.5.0")
-    if err != nil {
-        panic(err)
-    }
-    
-    session.Close()
-    if err != nil {
-        panic(err)
-    }
+	sessionID := gosnmp_python.NewRPCSessionV2c(
+		"1.2.3.4",
+		161,
+		"public",
+		5,
+		1,
+	)
+
+	err := gosnmp_python.RPCConnect(sessionID)
+	if err != nil {
+		panic(err)
+	}
+
+	jsonResult, err := gosnmp_python.RPCGet(sessionID, ".1.3.6.1.2.1.1.5.0")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(jsonResult)
+
+	err = gosnmp_python.RPCClose(sessionID)
+	if err != nil {
+		panic(err)
+	}
 
 }
 ```
@@ -124,7 +91,7 @@ func main() {
 To create an SNMPv2 session in Python do the following:
 
 ```
-from gosnmp import create_snmpv2c_session
+from gosnmp_python import create_snmpv2c_session
 
 session = create_snmpv2c_session(
     hostname='1.2.3.4',
@@ -143,9 +110,9 @@ Which returns an object like this:
 ```
 SNMPVariable(
     oid='.1.3.6.1.2.1.1.5', 
-    index=0, 
-    snmp_type='string', 
-    value='FTP_Switch1.ftpsolutions.com.au'
+    oid_index=0, 
+    snmp_type=u'bytearray', 
+    value='hostname.domain.com.au'
 )
 ```
  
