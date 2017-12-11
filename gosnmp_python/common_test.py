@@ -167,7 +167,7 @@ _SNMP_VARIABLE = SNMPVariable(
 )
 
 
-class FunctionsTest(unittest.TestCase):
+class CommonTest(unittest.TestCase):
     def test_handle_multi_result(self):
         assert_that(
             handle_multi_result(

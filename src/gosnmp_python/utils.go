@@ -5,12 +5,8 @@ package gosnmp_python
 import "C"
 import "sync"
 
-// globals
-
-var runningPyPy bool = false
+var runningPyPy = false
 var runningPyPyMutex sync.RWMutex
-
-// private functions
 
 func releaseGIL() *C.PyThreadState {
 	var tState *C.PyThreadState
@@ -32,14 +28,14 @@ func reacquireGIL(tState *C.PyThreadState) {
 	C.PyEval_RestoreThread(tState)
 }
 
-// public functions
-
+// SetPyPy is used by the Python side to declare whether or not we're running under PyPy (can't be discovered on the Go side)
 func SetPyPy() {
 	runningPyPyMutex.Lock()
 	runningPyPy = true
 	runningPyPyMutex.Unlock()
 }
 
+// GetPyPy returns true if we're running under PyPy
 func GetPyPy() bool {
 	runningPyPyMutex.RLock()
 	val := runningPyPy

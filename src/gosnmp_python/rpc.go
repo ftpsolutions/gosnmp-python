@@ -6,24 +6,17 @@ import (
 )
 
 import (
-	_ "net/http/pprof"
 	"sync"
 )
 
-// globals
-
 var sessionMutex sync.RWMutex
-var sessions map[uint64]session
+var sessions map[uint64]sessionInterface
 
-var lastSessionId uint64 = 0
-
-// initialiser
+var lastSessionID uint64
 
 func init() {
-	sessions = make(map[uint64]session)
+	sessions = make(map[uint64]sessionInterface)
 }
-
-// private functions
 
 func pyPyLock() {
 	if GetPyPy() {
@@ -37,107 +30,7 @@ func pyPyUnlock() {
 	}
 }
 
-// public functions
-
-func RPCConnect(sessionId uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
-
-	var err error
-
-	sessionMutex.RLock()
-	val, ok := sessions[sessionId]
-	sessionMutex.RUnlock()
-
-	if ok {
-		pyPyLock()
-		err = val.connect()
-		pyPyUnlock()
-	} else {
-		err = errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
-	}
-
-	return err
-}
-
-func RPCGet(sessionId uint64, oid string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
-
-	var err error
-	var result string
-
-	sessionMutex.RLock()
-	val, ok := sessions[sessionId]
-	sessionMutex.RUnlock()
-
-	if ok {
-		pyPyLock()
-		result, err = val.getJSON(oid)
-		pyPyUnlock()
-	} else {
-		err = errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
-	}
-
-	return result, err
-}
-
-func RPCGetNext(sessionId uint64, oid string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
-
-	var err error
-	var result string
-
-	sessionMutex.RLock()
-	val, ok := sessions[sessionId]
-	sessionMutex.RUnlock()
-
-	if ok {
-		pyPyLock()
-		result, err = val.getNextJSON(oid)
-		pyPyUnlock()
-	} else {
-		err = errors.New(fmt.Sprintf("sessionId %v does not exist", sessionId))
-	}
-
-	return result, err
-}
-
-func RPCClose(sessionId uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
-
-	var err error
-
-	sessionMutex.RLock()
-	val, ok := sessions[sessionId]
-	sessionMutex.RUnlock()
-
-	if ok {
-		pyPyLock()
-		err = val.close()
-		pyPyUnlock()
-		sessionMutex.Lock()
-		delete(sessions, sessionId)
-		sessionMutex.Unlock()
-	} else {
-		err = errors.New(fmt.Sprintf("sessionId %v does not exist; only %v", sessionId, sessions))
-	}
-
-	return err
-}
-
-// constructors
-
+// NewRPCSessionV1 creates a new Session for SNMPv1 and returns the sessionID
 func NewRPCSessionV1(hostname string, port int, community string, timeout, retries int) uint64 {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -145,8 +38,8 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 	}
 
 	sessionMutex.Lock()
-	sessionId := lastSessionId
-	lastSessionId++
+	sessionID := lastSessionID
+	lastSessionID++
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
@@ -160,12 +53,13 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionId] = session
+	sessions[sessionID] = session
 	sessionMutex.Unlock()
 
-	return sessionId
+	return sessionID
 }
 
+// NewRPCSessionV2c creates a new Session for SNMPv2c and returns the sessionID
 func NewRPCSessionV2c(hostname string, port int, community string, timeout, retries int) uint64 {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -173,8 +67,8 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 	}
 
 	sessionMutex.Lock()
-	sessionId := lastSessionId
-	lastSessionId++
+	sessionID := lastSessionID
+	lastSessionID++
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
@@ -188,12 +82,13 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionId] = session
+	sessions[sessionID] = session
 	sessionMutex.Unlock()
 
-	return sessionId
+	return sessionID
 }
 
+// NewRPCSessionV3 creates a new Session for SNMPv3 and returns the sessionID
 func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) uint64 {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -201,8 +96,8 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	}
 
 	sessionMutex.Lock()
-	sessionId := lastSessionId
-	lastSessionId++
+	sessionID := lastSessionID
+	lastSessionID++
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
@@ -221,8 +116,109 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionId] = session
+	sessions[sessionID] = session
 	sessionMutex.Unlock()
 
-	return sessionId
+	return sessionID
+}
+
+// RPCConnect calls .Connect on the Session identified by the sessionID
+func RPCConnect(sessionID uint64) error {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+
+	sessionMutex.RLock()
+	val, ok := sessions[sessionID]
+	sessionMutex.RUnlock()
+
+	if ok {
+		pyPyLock()
+		err = val.connect()
+		pyPyUnlock()
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return err
+}
+
+// RPCGet calls .Get on the Session identified by the sessionID
+func RPCGet(sessionID uint64, oid string) (string, error) {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+	var result string
+
+	sessionMutex.RLock()
+	val, ok := sessions[sessionID]
+	sessionMutex.RUnlock()
+
+	if ok {
+		pyPyLock()
+		result, err = val.getJSON(oid)
+		pyPyUnlock()
+	} else {
+		err = errors.New(fmt.Sprintf("sessionID %v does not exist", sessionID))
+	}
+
+	return result, err
+}
+
+// RPCGetNext calls .GetNext on the Session identified by the sessionID
+func RPCGetNext(sessionID uint64, oid string) (string, error) {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+	var result string
+
+	sessionMutex.RLock()
+	val, ok := sessions[sessionID]
+	sessionMutex.RUnlock()
+
+	if ok {
+		pyPyLock()
+		result, err = val.getNextJSON(oid)
+		pyPyUnlock()
+	} else {
+		err = errors.New(fmt.Sprintf("sessionID %v does not exist", sessionID))
+	}
+
+	return result, err
+}
+
+// RPCClose calls .Close on the Session identified by the sessionID
+func RPCClose(sessionID uint64) error {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+
+	sessionMutex.RLock()
+	val, ok := sessions[sessionID]
+	sessionMutex.RUnlock()
+
+	if ok {
+		pyPyLock()
+		err = val.close()
+		pyPyUnlock()
+		sessionMutex.Lock()
+		delete(sessions, sessionID)
+		sessionMutex.Unlock()
+	} else {
+		err = errors.New(fmt.Sprintf("sessionID %v does not exist; only %v", sessionID, sessions))
+	}
+
+	return err
 }

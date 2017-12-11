@@ -1,22 +1,26 @@
 package gosnmp_python
 
-// #cgo pkg-config: python2
-// #include <Python.h>
-
 import (
-	"time"
-	"math"
-	"github.com/initialed85/gosnmp"
-	"fmt"
-	"strings"
-	"errors"
 	"encoding/json"
+	"fmt"
+	"math"
+	"strings"
+	"time"
+
+	"github.com/initialed85/gosnmp"
 )
 
-// structs
+type sessionInterface interface {
+	connect() error
+	get(string) (multiResult, error)
+	getJSON(string) (string, error)
+	getNext(string) (multiResult, error)
+	getNextJSON(string) (string, error)
+	close() error
+}
 
 type session struct {
-	snmp *gosnmp.GoSNMP // this has to be private
+	snmp *gosnmp.GoSNMP
 }
 
 type multiResult struct {
@@ -33,8 +37,6 @@ type multiResult struct {
 	ByteArray        []int
 	StringValue      string
 }
-
-// helper functions
 
 func getSecurityLevel(securityLevel string) gosnmp.SnmpV3MsgFlags {
 	securityLevel = strings.ToLower(securityLevel)
@@ -180,112 +182,8 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 
 	}
 
-	return multiResult, errors.New(
-		fmt.Sprintf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value),
-	)
+	return multiResult, fmt.Errorf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
 }
-
-// public methods
-
-func (self *session) connect() error {
-	return self.snmp.Connect()
-}
-
-func (self *session) get(oid string) (multiResult, error) {
-	emptyMultiResult := multiResult{}
-
-	result, err := self.snmp.Get([]string{oid})
-	if err != nil {
-		return emptyMultiResult, err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
-	if err != nil {
-		return emptyMultiResult, err
-	}
-
-	return multiResult, nil
-}
-
-func (self *session) getJSON(oid string) (string, error) {
-	result, err := self.snmp.Get([]string{oid})
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResultBytes, err := json.Marshal(multiResult)
-	if err != nil {
-		return "{}", err
-	}
-
-	return string(multiResultBytes), nil
-}
-
-func (self *session) getNext(oid string) (multiResult, error) {
-	emptyMultiResult := multiResult{}
-
-	result, err := self.snmp.GetNext([]string{oid})
-	if err != nil {
-		return emptyMultiResult, err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
-	if err != nil {
-		return emptyMultiResult, err
-	}
-
-	return multiResult, nil
-}
-
-func (self *session) getNextJSON(oid string) (string, error) {
-	result, err := self.snmp.GetNext([]string{oid})
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResultBytes, err := json.Marshal(multiResult)
-	if err != nil {
-		return "{}", err
-	}
-
-	return string(multiResultBytes), nil
-}
-
-func (self *session) close() error {
-	err := self.snmp.Conn.Close()
-
-	self.snmp = nil // seems to be important for Go's garbage collector
-
-	return err
-}
-
-// constructors
 
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
 	snmp := &gosnmp.GoSNMP{
@@ -298,14 +196,14 @@ func newSessionV1(hostname string, port int, community string, timeout, retries 
 		MaxOids:   math.MaxInt32,
 	}
 
-	self := session{
+	s := session{
 		snmp: snmp,
 	}
 
-	return self
+	return s
 }
 
-func newSessionV2c(hostname string, port int, community string, timeout, retries int) (session) {
+func newSessionV2c(hostname string, port int, community string, timeout, retries int) session {
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
 		Port:      uint16(port),
@@ -316,11 +214,11 @@ func newSessionV2c(hostname string, port int, community string, timeout, retries
 		MaxOids:   math.MaxInt32,
 	}
 
-	self := session{
+	s := session{
 		snmp: snmp,
 	}
 
-	return self
+	return s
 }
 
 func newSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) session {
@@ -345,9 +243,107 @@ func newSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 		MaxOids: math.MaxInt32,
 	}
 
-	self := session{
+	s := session{
 		snmp: snmp,
 	}
 
-	return self
+	return s
+}
+
+func (s session) connect() error {
+	return s.snmp.Connect()
+}
+
+func (s session) get(oid string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
+
+	result, err := s.snmp.Get([]string{oid})
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	return multiResult, nil
+}
+
+func (s session) getJSON(oid string) (string, error) {
+	result, err := s.snmp.Get([]string{oid})
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "{}", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (s session) getNext(oid string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
+
+	result, err := s.snmp.GetNext([]string{oid})
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	return multiResult, nil
+}
+
+func (s session) getNextJSON(oid string) (string, error) {
+	result, err := s.snmp.GetNext([]string{oid})
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "{}", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (s session) close() error {
+	err := s.snmp.Conn.Close()
+
+	s.snmp = nil // seems to be important for Go's garbage collector
+
+	return err
 }
