@@ -31,7 +31,7 @@ if [[ "$1" != "fast" ]]; then
     echo ""
 
     echo "building gosnmp"
-    go build -a github.com/initialed85/gosnmp
+    go build -a -x github.com/initialed85/gosnmp
     echo ""
 
     echo "getting gopy"
@@ -39,11 +39,11 @@ if [[ "$1" != "fast" ]]; then
     echo ""
 
     echo "building gopy"
-    go build -a github.com/go-python/gopy
+    go build -a -x github.com/go-python/gopy
     echo ""
 
     echo "building gosnmp_python"
-    go build -a gosnmp_python
+    go build -a -x gosnmp_python
     echo ""
 fi
 
