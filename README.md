@@ -8,8 +8,6 @@ It was made very easy with the help of the Golang
 
 #### Limitations
 
-* I haven't written any tests for the Go side because (excuses)
-* Doesn't seem to work with Python any more (after the CFFI change)
 * Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
 * I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)
 * PyPy seems to have memory problems (particularly when closing/opening lots of sessions in multiple threads)
@@ -39,9 +37,6 @@ Right now I'm still working on how to put it all together as a Python module, so
 * gopy doesn't like Go interfaces; so make sure you don't have any public (exported) interfaces
     * this includes a struct with a public property that may eventually lead to an interface
     * e.g. Session.snmp is private (because that object leads to gosnmp which has interfaces)
-* I've left the GIL handling in potentially blocking call (for performance on the Python side);
-  it doesn't seem to be used by PyPy and has odd behaviour with Python depending on the version,
-  you may want to remove it altogether or try and make it work properly (if you use Python).
 
 #### Example Go RPCSession usage (simple session ID, calls return JSON)
 
