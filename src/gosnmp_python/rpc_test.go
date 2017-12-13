@@ -94,8 +94,8 @@ func TestNewRPCSessionV3(t *testing.T) {
 		testHostname,
 		testPort,
 		testSecurityUsername,
-		testPrivacyPassword,
-		testAuthPassword,
+		testPassword,
+		testPassword,
 		testSecurityLevel,
 		testAuthProtocol,
 		testPrivacyProtocol,
@@ -116,9 +116,9 @@ func TestNewRPCSessionV3(t *testing.T) {
 		&gosnmp.UsmSecurityParameters{
 			UserName:                 testSecurityUsername,
 			AuthenticationProtocol:   gosnmp.SHA,
-			AuthenticationPassphrase: testAuthPassword,
+			AuthenticationPassphrase: testPassword,
 			PrivacyProtocol:          gosnmp.AES,
-			PrivacyPassphrase:        testPrivacyPassword,
+			PrivacyPassphrase:        testPassword,
 		},
 	)
 	a.Equal(snmp.Version, gosnmp.Version3)
@@ -150,7 +150,7 @@ func TestRPGet(t *testing.T) {
 
 	sessions[sessionID] = &subject
 
-	result, err := RPCGet(sessionID, "1.2.3.4")
+	result, err := RPCGet(sessionID, testOID)
 
 	a.Equal(result, testJSON)
 	a.Equal(err, nil)
@@ -165,7 +165,7 @@ func TestRPGetNext(t *testing.T) {
 
 	sessions[sessionID] = &subject
 
-	result, err := RPCGetNext(sessionID, "1.2.3.4")
+	result, err := RPCGetNext(sessionID, testOID)
 
 	a.Equal(result, testJSON)
 	a.Equal(err, nil)

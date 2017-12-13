@@ -121,7 +121,7 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	return sessionID
 }
 
-// RPCConnect calls .Connect on the Session identified by the sessionID
+// RPCConnect calls .connect on the Session identified by the sessionID
 func RPCConnect(sessionID uint64) error {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -145,7 +145,7 @@ func RPCConnect(sessionID uint64) error {
 	return err
 }
 
-// RPCGet calls .Get on the Session identified by the sessionID
+// RPCGet calls .get on the Session identified by the sessionID
 func RPCGet(sessionID uint64, oid string) (string, error) {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -170,7 +170,7 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 	return result, err
 }
 
-// RPCGetNext calls .GetNext on the Session identified by the sessionID
+// RPCGetNext calls .getNext on the Session identified by the sessionID
 func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	if !GetPyPy() {
 		tState := releaseGIL()
@@ -195,7 +195,7 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	return result, err
 }
 
-// RPCClose calls .Close on the Session identified by the sessionID
+// RPCClose calls .close on the Session identified by the sessionID
 func RPCClose(sessionID uint64) error {
 	if !GetPyPy() {
 		tState := releaseGIL()
