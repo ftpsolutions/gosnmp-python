@@ -11,7 +11,6 @@ import (
 
 var sessionMutex sync.RWMutex
 var sessions map[uint64]sessionInterface
-
 var lastSessionID uint64
 
 func init() {

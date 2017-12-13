@@ -18,7 +18,7 @@ func TestNewSessionV1(t *testing.T) {
 		testRetries,
 	)
 
-	snmp := session.snmp
+	snmp := session.snmp.getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
@@ -39,7 +39,7 @@ func TestNewSessionV2c(t *testing.T) {
 		testRetries,
 	)
 
-	snmp := session.snmp
+	snmp := session.snmp.getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
@@ -65,7 +65,7 @@ func TestNewSessionV3(t *testing.T) {
 		testRetries,
 	)
 
-	snmp := session.snmp
+	snmp := session.snmp.getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)

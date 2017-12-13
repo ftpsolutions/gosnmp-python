@@ -233,40 +233,44 @@ func (m *mockSession) close() error {
 }
 
 type session struct {
-	snmp *gosnmp.GoSNMP
+	snmp wrappedSNMPInterface
 }
 
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
-	snmp := &gosnmp.GoSNMP{
-		Target:    hostname,
-		Port:      uint16(port),
-		Community: community,
-		Version:   gosnmp.Version1,
-		Timeout:   time.Duration(timeout) * time.Second,
-		Retries:   retries,
-		MaxOids:   math.MaxInt32,
+	snmp := wrappedSNMP{
+		&gosnmp.GoSNMP{
+			Target:    hostname,
+			Port:      uint16(port),
+			Community: community,
+			Version:   gosnmp.Version1,
+			Timeout:   time.Duration(timeout) * time.Second,
+			Retries:   retries,
+			MaxOids:   math.MaxInt32,
+		},
 	}
 
 	s := session{
-		snmp: snmp,
+		snmp: &snmp,
 	}
 
 	return s
 }
 
 func newSessionV2c(hostname string, port int, community string, timeout, retries int) session {
-	snmp := &gosnmp.GoSNMP{
-		Target:    hostname,
-		Port:      uint16(port),
-		Community: community,
-		Version:   gosnmp.Version2c,
-		Timeout:   time.Duration(timeout) * time.Second,
-		Retries:   retries,
-		MaxOids:   math.MaxInt32,
+	snmp := wrappedSNMP{
+		&gosnmp.GoSNMP{
+			Target:    hostname,
+			Port:      uint16(port),
+			Community: community,
+			Version:   gosnmp.Version2c,
+			Timeout:   time.Duration(timeout) * time.Second,
+			Retries:   retries,
+			MaxOids:   math.MaxInt32,
+		},
 	}
 
 	s := session{
-		snmp: snmp,
+		snmp: &snmp,
 	}
 
 	return s
@@ -276,33 +280,35 @@ func newSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
 
-	snmp := &gosnmp.GoSNMP{
-		Target:        hostname,
-		Port:          uint16(port),
-		Version:       gosnmp.Version3,
-		Timeout:       time.Duration(timeout) * time.Second,
-		Retries:       retries,
-		SecurityModel: gosnmp.UserSecurityModel,
-		MsgFlags:      getSecurityLevel(securityLevel),
-		SecurityParameters: &gosnmp.UsmSecurityParameters{
-			UserName:                 securityUsername,
-			AuthenticationProtocol:   actualAuthProtocol,
-			AuthenticationPassphrase: actualAuthPassword,
-			PrivacyProtocol:          actualPrivProtocol,
-			PrivacyPassphrase:        actualPrivPassword,
+	snmp := wrappedSNMP{
+		&gosnmp.GoSNMP{
+			Target:        hostname,
+			Port:          uint16(port),
+			Version:       gosnmp.Version3,
+			Timeout:       time.Duration(timeout) * time.Second,
+			Retries:       retries,
+			SecurityModel: gosnmp.UserSecurityModel,
+			MsgFlags:      getSecurityLevel(securityLevel),
+			SecurityParameters: &gosnmp.UsmSecurityParameters{
+				UserName:                 securityUsername,
+				AuthenticationProtocol:   actualAuthProtocol,
+				AuthenticationPassphrase: actualAuthPassword,
+				PrivacyProtocol:          actualPrivProtocol,
+				PrivacyPassphrase:        actualPrivPassword,
+			},
+			MaxOids: math.MaxInt32,
 		},
-		MaxOids: math.MaxInt32,
 	}
 
 	s := session{
-		snmp: snmp,
+		snmp: &snmp,
 	}
 
 	return s
 }
 
 func (s *session) getSNMP() *gosnmp.GoSNMP {
-	return s.snmp
+	return s.snmp.getSNMP()
 }
 
 func (s *session) connect() error {
@@ -396,7 +402,7 @@ func (s *session) getNextJSON(oid string) (string, error) {
 }
 
 func (s *session) close() error {
-	err := s.snmp.Conn.Close()
+	err := s.snmp.getConn().Close()
 
 	s.snmp = nil // seems to be important for Go's garbage collector
 
