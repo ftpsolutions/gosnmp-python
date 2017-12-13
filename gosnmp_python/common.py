@@ -87,7 +87,7 @@ def handle_multi_result(multi_result):
             snmp_type=multi_result.Type,
             value=multi_result.FloatValue,
         )
-    elif multi_result.Type in ['ByteArrayValue']:
+    elif multi_result.Type in ['bytearray']:
         return SNMPVariable(
             oid=oid,
             oid_index=oid_index,

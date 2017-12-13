@@ -129,9 +129,9 @@ _MULTI_RESULT_STRING = MultiResult(
     StringValue='some string',
 )
 
-_MULTI_RESULT_ByteArrayValue = MultiResult(
+_MULTI_RESULT_BYTEARRAY = MultiResult(
     OID='.1.2.3.4',
-    Type='ByteArrayValue',
+    Type='bytearray',
     IsNull=False,
     IsUnknown=False,
     IsNoSuchInstance=False,
@@ -225,10 +225,10 @@ class CommonTest(unittest.TestCase):
 
         assert_that(
             handle_multi_result(
-                _MULTI_RESULT_ByteArrayValue
+                _MULTI_RESULT_BYTEARRAY
             ),
             equal_to(
-                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='ByteArrayValue', value='ABCDEF')
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='bytearray', value='ABCDEF')
             )
         )
 
