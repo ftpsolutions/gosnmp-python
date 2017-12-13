@@ -4,10 +4,8 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"encoding/json"
 	"github.com/initialed85/gosnmp"
 	"time"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestPyPyLock(t *testing.T) {
@@ -36,12 +34,6 @@ func TestPyPyUnLock(t *testing.T) {
 	)
 }
 
-var testHostname = "some_hostname"
-var testPort = 161
-var testCommunity = "public"
-var testTimeout = 5
-var testRetries = 1
-
 func TestNewRPCSessionV1(t *testing.T) {
 	a := assert.New(t)
 
@@ -55,7 +47,7 @@ func TestNewRPCSessionV1(t *testing.T) {
 
 	a.Equal(uint64(0), sessionID)
 
-	snmp := sessions[sessionID].(session).snmp
+	snmp := sessions[sessionID].getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
@@ -82,7 +74,7 @@ func TestNewRPCSessionV2c(t *testing.T) {
 
 	a.Equal(uint64(0), sessionID)
 
-	snmp := sessions[sessionID].(session).snmp
+	snmp := sessions[sessionID].getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
@@ -94,13 +86,6 @@ func TestNewRPCSessionV2c(t *testing.T) {
 	delete(sessions, sessionID)
 	lastSessionID--
 }
-
-var testSecurityUsername = "some_security_username"
-var testPrivacyPassword = "some_privacy_password"
-var testAuthPassword = "some_auth_password"
-var testSecurityLevel = "authPriv"
-var testAuthProtocol = "SHA"
-var testPrivacyProtocol = "AES"
 
 func TestNewRPCSessionV3(t *testing.T) {
 	a := assert.New(t)
@@ -120,7 +105,7 @@ func TestNewRPCSessionV3(t *testing.T) {
 
 	a.Equal(uint64(0), sessionID)
 
-	snmp := sessions[sessionID].(session).snmp
+	snmp := sessions[sessionID].getSNMP()
 
 	a.Equal("some_hostname", snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
@@ -144,54 +129,6 @@ func TestNewRPCSessionV3(t *testing.T) {
 	lastSessionID--
 }
 
-type mockSession struct {
-	mock.Mock
-}
-
-func (m mockSession) connect() error {
-	return nil
-}
-
-func (m mockSession) get(oid string) (multiResult, error) {
-	return multiResult{OID: oid}, nil
-}
-
-func (m mockSession) getJSON(oid string) (string, error) {
-	snmpResult, err := m.get(oid)
-	if err != nil {
-		return "", err
-	}
-
-	jsonResult, err := json.Marshal(snmpResult)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonResult), err
-}
-
-func (m mockSession) getNext(oid string) (multiResult, error) {
-	return multiResult{OID: oid}, nil
-}
-
-func (m mockSession) getNextJSON(oid string) (string, error) {
-	snmpResult, err := m.getNext(oid)
-	if err != nil {
-		return "", err
-	}
-
-	jsonResult, err := json.Marshal(snmpResult)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonResult), err
-}
-
-func (m mockSession) close() error {
-	return nil
-}
-
 func TestRPCConnect(t *testing.T) {
 	a := assert.New(t)
 
@@ -203,8 +140,6 @@ func TestRPCConnect(t *testing.T) {
 
 	a.Equal(RPCConnect(sessionID), nil)
 }
-
-var testJSON = "{\"OID\":\"1.2.3.4\",\"Type\":\"\",\"IsNull\":false,\"IsUnknown\":false,\"IsNoSuchInstance\":false,\"IsNoSuchObject\":false,\"IsEndOfMibView\":false,\"BoolValue\":false,\"IntValue\":0,\"FloatValue\":0,\"ByteArray\":null,\"StringValue\":\"\"}"
 
 func TestRPGet(t *testing.T) {
 	a := assert.New(t)

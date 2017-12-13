@@ -53,7 +53,7 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionID] = session
+	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
 	return sessionID
@@ -82,7 +82,7 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionID] = session
+	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
 	return sessionID
@@ -116,7 +116,7 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
-	sessions[sessionID] = session
+	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
 	return sessionID

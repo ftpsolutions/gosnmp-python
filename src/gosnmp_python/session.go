@@ -10,19 +10,6 @@ import (
 	"github.com/initialed85/gosnmp"
 )
 
-type sessionInterface interface {
-	connect() error
-	get(string) (multiResult, error)
-	getJSON(string) (string, error)
-	getNext(string) (multiResult, error)
-	getNextJSON(string) (string, error)
-	close() error
-}
-
-type session struct {
-	snmp *gosnmp.GoSNMP
-}
-
 type multiResult struct {
 	OID              string
 	Type             string
@@ -185,6 +172,70 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	return multiResult, fmt.Errorf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
 }
 
+type sessionInterface interface {
+	getSNMP() *gosnmp.GoSNMP
+	connect() error
+	get(string) (multiResult, error)
+	getJSON(string) (string, error)
+	getNext(string) (multiResult, error)
+	getNextJSON(string) (string, error)
+	close() error
+}
+
+type mockSession struct{}
+
+func (m *mockSession) getSNMP() *gosnmp.GoSNMP {
+	return nil
+}
+
+func (m *mockSession) connect() error {
+	return nil
+}
+
+func (m *mockSession) get(oid string) (multiResult, error) {
+	return multiResult{OID: oid}, nil
+}
+
+func (m *mockSession) getJSON(oid string) (string, error) {
+	snmpResult, err := m.get(oid)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResult, err := json.Marshal(snmpResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResult), err
+}
+
+func (m *mockSession) getNext(oid string) (multiResult, error) {
+	return multiResult{OID: oid}, nil
+}
+
+func (m *mockSession) getNextJSON(oid string) (string, error) {
+	snmpResult, err := m.getNext(oid)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResult, err := json.Marshal(snmpResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResult), err
+}
+
+func (m *mockSession) close() error {
+	return nil
+}
+
+type session struct {
+	snmp *gosnmp.GoSNMP
+}
+
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
 	snmp := &gosnmp.GoSNMP{
 		Target:    hostname,
@@ -250,11 +301,15 @@ func newSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 	return s
 }
 
-func (s session) connect() error {
+func (s *session) getSNMP() *gosnmp.GoSNMP {
+	return s.snmp
+}
+
+func (s *session) connect() error {
 	return s.snmp.Connect()
 }
 
-func (s session) get(oid string) (multiResult, error) {
+func (s *session) get(oid string) (multiResult, error) {
 	emptyMultiResult := multiResult{}
 
 	result, err := s.snmp.Get([]string{oid})
@@ -274,7 +329,7 @@ func (s session) get(oid string) (multiResult, error) {
 	return multiResult, nil
 }
 
-func (s session) getJSON(oid string) (string, error) {
+func (s *session) getJSON(oid string) (string, error) {
 	result, err := s.snmp.Get([]string{oid})
 	if err != nil {
 		return "{}", err
@@ -297,7 +352,7 @@ func (s session) getJSON(oid string) (string, error) {
 	return string(multiResultBytes), nil
 }
 
-func (s session) getNext(oid string) (multiResult, error) {
+func (s *session) getNext(oid string) (multiResult, error) {
 	emptyMultiResult := multiResult{}
 
 	result, err := s.snmp.GetNext([]string{oid})
@@ -317,7 +372,7 @@ func (s session) getNext(oid string) (multiResult, error) {
 	return multiResult, nil
 }
 
-func (s session) getNextJSON(oid string) (string, error) {
+func (s *session) getNextJSON(oid string) (string, error) {
 	result, err := s.snmp.GetNext([]string{oid})
 	if err != nil {
 		return "{}", err
@@ -340,7 +395,7 @@ func (s session) getNextJSON(oid string) (string, error) {
 	return string(multiResultBytes), nil
 }
 
-func (s session) close() error {
+func (s *session) close() error {
 	err := s.snmp.Conn.Close()
 
 	s.snmp = nil // seems to be important for Go's garbage collector
