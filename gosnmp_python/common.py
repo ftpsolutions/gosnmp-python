@@ -22,7 +22,7 @@ MultiResult = namedtuple('MultiResult', [
     'BoolValue',
     'IntValue',
     'FloatValue',
-    'ByteArray',
+    'ByteArrayValue',
     'StringValue',
 ])
 
@@ -87,12 +87,12 @@ def handle_multi_result(multi_result):
             snmp_type=multi_result.Type,
             value=multi_result.FloatValue,
         )
-    elif multi_result.Type in ['bytearray']:
+    elif multi_result.Type in ['ByteArrayValue']:
         return SNMPVariable(
             oid=oid,
             oid_index=oid_index,
             snmp_type=multi_result.Type,
-            value=''.join([chr(x) for x in multi_result.ByteArray]),
+            value=''.join([chr(x) for x in multi_result.ByteArrayValue]),
         )
     elif multi_result.Type in ['string']:
         return SNMPVariable(
