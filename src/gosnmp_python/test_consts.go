@@ -5,6 +5,7 @@ const testPort = 161
 const testCommunity = "public"
 const testTimeout = 5
 const testRetries = 1
+const testContextName = "some_context_name"
 const testSecurityUsername = "some_security_username"
 const testPassword = "some_privacy_password"
 const testSecurityLevel = "authPriv"

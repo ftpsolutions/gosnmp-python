@@ -1,12 +1,13 @@
 package gosnmp_python
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/initialed85/gosnmp"
-	"time"
-	"fmt"
 	"errors"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/initialed85/gosnmp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetSecurityLevel(t *testing.T) {
@@ -55,7 +56,7 @@ func TestGetAuthenticationDetails(t *testing.T) {
 		expectedProtocol gosnmp.SnmpV3AuthProtocol
 		inputProtocol    string
 	}{
-		{"", gosnmp.NoAuth, "",},
+		{"", gosnmp.NoAuth, ""},
 		{testPassword, gosnmp.MD5, "MD5"},
 		{testPassword, gosnmp.SHA, "SHA"},
 	}
@@ -215,12 +216,12 @@ func TestNewSessionV1(t *testing.T) {
 
 	snmp := session.snmp.getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal("public", snmp.Community)
-	a.Equal(snmp.Version, gosnmp.Version1)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(testCommunity, snmp.Community)
+	a.Equal(gosnmp.Version1, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 }
 
 func TestNewSessionV2c(t *testing.T) {
@@ -236,12 +237,12 @@ func TestNewSessionV2c(t *testing.T) {
 
 	snmp := session.snmp.getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal("public", snmp.Community)
-	a.Equal(snmp.Version, gosnmp.Version2c)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(testCommunity, snmp.Community)
+	a.Equal(gosnmp.Version2c, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 }
 
 func TestNewSessionV3(t *testing.T) {
@@ -250,6 +251,7 @@ func TestNewSessionV3(t *testing.T) {
 	session := newSessionV3(
 		testHostname,
 		testPort,
+		testContextName,
 		testSecurityUsername,
 		testPassword,
 		testPassword,
@@ -262,10 +264,11 @@ func TestNewSessionV3(t *testing.T) {
 
 	snmp := session.snmp.getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal(snmp.SecurityModel, gosnmp.UserSecurityModel)
-	a.Equal(snmp.MsgFlags, gosnmp.AuthPriv)
+	a.Equal(testContextName, snmp.ContextName)
+	a.Equal(gosnmp.UserSecurityModel, snmp.SecurityModel)
+	a.Equal(gosnmp.AuthPriv, snmp.MsgFlags)
 	a.Equal(
 		snmp.SecurityParameters,
 		&gosnmp.UsmSecurityParameters{
@@ -276,9 +279,9 @@ func TestNewSessionV3(t *testing.T) {
 			PrivacyPassphrase:        testPassword,
 		},
 	)
-	a.Equal(snmp.Version, gosnmp.Version3)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(gosnmp.Version3, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 }
 
 func TestConnect(t *testing.T) {

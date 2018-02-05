@@ -26,6 +26,10 @@ rm -frv gosnmp_python/cffi/gosnmp_python.py
 echo ""
 
 if [[ "$1" != "fast" ]]; then
+    echo "getting assert"
+    go get -v github.com/stretchr/testify/assert
+    echo ""
+
     echo "getting gosnmp"
     go get -v github.com/initialed85/gosnmp
     echo ""

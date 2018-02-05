@@ -1,11 +1,12 @@
 package gosnmp_python
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"reflect"
-	"github.com/initialed85/gosnmp"
+	"testing"
 	"time"
+
+	"github.com/initialed85/gosnmp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPyPyLock(t *testing.T) {
@@ -49,12 +50,12 @@ func TestNewRPCSessionV1(t *testing.T) {
 
 	snmp := sessions[sessionID].getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal("public", snmp.Community)
-	a.Equal(snmp.Version, gosnmp.Version1)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(testCommunity, snmp.Community)
+	a.Equal(gosnmp.Version1, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 
 	delete(sessions, sessionID)
 	lastSessionID--
@@ -76,12 +77,12 @@ func TestNewRPCSessionV2c(t *testing.T) {
 
 	snmp := sessions[sessionID].getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal("public", snmp.Community)
-	a.Equal(snmp.Version, gosnmp.Version2c)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(testCommunity, snmp.Community)
+	a.Equal(gosnmp.Version2c, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 
 	delete(sessions, sessionID)
 	lastSessionID--
@@ -93,6 +94,7 @@ func TestNewRPCSessionV3(t *testing.T) {
 	sessionID := NewRPCSessionV3(
 		testHostname,
 		testPort,
+		testContextName,
 		testSecurityUsername,
 		testPassword,
 		testPassword,
@@ -107,10 +109,11 @@ func TestNewRPCSessionV3(t *testing.T) {
 
 	snmp := sessions[sessionID].getSNMP()
 
-	a.Equal("some_hostname", snmp.Target)
+	a.Equal(testHostname, snmp.Target)
 	a.Equal(uint16(161), snmp.Port)
-	a.Equal(snmp.SecurityModel, gosnmp.UserSecurityModel)
-	a.Equal(snmp.MsgFlags, gosnmp.AuthPriv)
+	a.Equal(testContextName, snmp.ContextName)
+	a.Equal(gosnmp.UserSecurityModel, snmp.SecurityModel)
+	a.Equal(gosnmp.AuthPriv, snmp.MsgFlags)
 	a.Equal(
 		snmp.SecurityParameters,
 		&gosnmp.UsmSecurityParameters{
@@ -121,9 +124,9 @@ func TestNewRPCSessionV3(t *testing.T) {
 			PrivacyPassphrase:        testPassword,
 		},
 	)
-	a.Equal(snmp.Version, gosnmp.Version3)
-	a.Equal(snmp.Timeout, time.Second*5)
-	a.Equal(snmp.Retries, 1)
+	a.Equal(gosnmp.Version3, snmp.Version)
+	a.Equal(time.Second*5, snmp.Timeout)
+	a.Equal(1, snmp.Retries)
 
 	delete(sessions, sessionID)
 	lastSessionID--

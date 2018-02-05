@@ -3,9 +3,6 @@ package gosnmp_python
 import (
 	"errors"
 	"fmt"
-)
-
-import (
 	"sync"
 )
 
@@ -88,7 +85,7 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 }
 
 // NewRPCSessionV3 creates a new Session for SNMPv3 and returns the sessionID
-func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) uint64 {
+func NewRPCSessionV3(hostname string, port int, contextName, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) uint64 {
 	if !GetPyPy() {
 		tState := releaseGIL()
 		defer reacquireGIL(tState)
@@ -103,6 +100,7 @@ func NewRPCSessionV3(hostname string, port int, securityUsername, privacyPasswor
 	session := newSessionV3(
 		hostname,
 		port,
+		contextName,
 		securityUsername,
 		privacyPassword,
 		authPassword,

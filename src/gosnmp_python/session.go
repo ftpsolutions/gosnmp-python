@@ -215,7 +215,7 @@ func newSessionV2c(hostname string, port int, community string, timeout, retries
 	return s
 }
 
-func newSessionV3(hostname string, port int, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) session {
+func newSessionV3(hostname string, port int, contextName, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) session {
 	actualAuthPassword, actualAuthProtocol := getAuthenticationDetails(authPassword, authProtocol)
 	actualPrivPassword, actualPrivProtocol := getPrivacyDetails(privacyPassword, privacyProtocol)
 
@@ -235,7 +235,8 @@ func newSessionV3(hostname string, port int, securityUsername, privacyPassword, 
 				PrivacyProtocol:          actualPrivProtocol,
 				PrivacyPassphrase:        actualPrivPassword,
 			},
-			MaxOids: math.MaxInt32,
+			MaxOids:     math.MaxInt32,
+			ContextName: contextName,
 		},
 	}
 

@@ -12,6 +12,8 @@ else:
 
     SetPyPy()
 
+    print 'WARNING: PyPy detected- be prepared for very odd behaviour'
+
 
 def _new_rpc_session_v1(*args):
     return handle_exception(
@@ -95,10 +97,13 @@ def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
 
 
 def create_snmpv3_session(hostname, security_username, security_level, auth_password, auth_protocol, privacy_password,
-                          privacy_protocol, port=161, timeout=5, retries=1):
+                          privacy_protocol, context_name=None, port=161, timeout=5, retries=1):
+    context_name = context_name if context_name is not None else ''
+    
     session_id = _new_rpc_session_v3(
         str(hostname),
         int(port),
+        str(context_name),
         str(security_username),
         str(privacy_password),
         str(auth_password),

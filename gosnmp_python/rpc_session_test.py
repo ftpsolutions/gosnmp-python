@@ -127,6 +127,7 @@ class ConstructorsTest(unittest.TestCase):
         subject = create_snmpv3_session(
             hostname=u'some_hostname',
             security_username=u'some_username',
+            context_name=u'some_context_name',
             security_level=u'authPriv',
             auth_password=u'some_password',
             auth_protocol=u'SHA',
@@ -143,6 +144,7 @@ class ConstructorsTest(unittest.TestCase):
                 call(
                     'some_hostname',
                     161,
+                    'some_context_name',
                     'some_username',
                     'other_password',
                     'some_password',
