@@ -7,13 +7,22 @@ import "sync"
 
 var runningPyPy = false
 var runningPyPyMutex sync.RWMutex
+var runningTest = false
+
+func setTesting() {
+	runningTest = true
+}
 
 func releaseGIL() *C.PyThreadState {
-	var tState *C.PyThreadState
-
-	if C.PyEval_ThreadsInitialized() == 0 {
+	if runningTest {
 		return nil
 	}
+
+	var tState *C.PyThreadState
+
+	// if C.PyEval_ThreadsInitialized() == 0 {
+	// 	return nil
+	// }
 
 	tState = C.PyEval_SaveThread()
 
@@ -21,6 +30,10 @@ func releaseGIL() *C.PyThreadState {
 }
 
 func reacquireGIL(tState *C.PyThreadState) {
+	if runningTest {
+		return
+	}
+
 	if tState == nil {
 		return
 	}

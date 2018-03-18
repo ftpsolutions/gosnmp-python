@@ -1,9 +1,10 @@
 package gosnmp_python
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"sync"
+	"time"
 )
 
 var sessionMutex sync.RWMutex
@@ -12,18 +13,12 @@ var lastSessionID uint64
 
 func init() {
 	sessions = make(map[uint64]sessionInterface)
+
+	time.Sleep(time.Second) // give the Python side a little time to settle
 }
 
-func pyPyLock() {
-	if GetPyPy() {
-		sessionMutex.Lock()
-	}
-}
-
-func pyPyUnlock() {
-	if GetPyPy() {
-		sessionMutex.Unlock()
-	}
+func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) {
+	log.Printf(fmt.Sprintf("Handled \"%v\" in %v for %v - %+v\n", err, extra, sessionID, s.getSNMP()))
 }
 
 // NewRPCSessionV1 creates a new Session for SNMPv1 and returns the sessionID
@@ -33,12 +28,6 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 		defer reacquireGIL(tState)
 	}
 
-	sessionMutex.Lock()
-	sessionID := lastSessionID
-	lastSessionID++
-	sessionMutex.Unlock()
-
-	sessionMutex.Lock()
 	session := newSessionV1(
 		hostname,
 		port,
@@ -46,9 +35,10 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 		timeout,
 		retries,
 	)
-	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
+	sessionID := lastSessionID
+	lastSessionID++
 	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
@@ -62,12 +52,6 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 		defer reacquireGIL(tState)
 	}
 
-	sessionMutex.Lock()
-	sessionID := lastSessionID
-	lastSessionID++
-	sessionMutex.Unlock()
-
-	sessionMutex.Lock()
 	session := newSessionV2c(
 		hostname,
 		port,
@@ -75,9 +59,10 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 		timeout,
 		retries,
 	)
-	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
+	sessionID := lastSessionID
+	lastSessionID++
 	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
@@ -91,12 +76,6 @@ func NewRPCSessionV3(hostname string, port int, contextName, securityUsername, p
 		defer reacquireGIL(tState)
 	}
 
-	sessionMutex.Lock()
-	sessionID := lastSessionID
-	lastSessionID++
-	sessionMutex.Unlock()
-
-	sessionMutex.Lock()
 	session := newSessionV3(
 		hostname,
 		port,
@@ -110,9 +89,10 @@ func NewRPCSessionV3(hostname string, port int, contextName, securityUsername, p
 		timeout,
 		retries,
 	)
-	sessionMutex.Unlock()
 
 	sessionMutex.Lock()
+	sessionID := lastSessionID
+	lastSessionID++
 	sessions[sessionID] = &session
 	sessionMutex.Unlock()
 
@@ -133,9 +113,7 @@ func RPCConnect(sessionID uint64) error {
 	sessionMutex.RUnlock()
 
 	if ok {
-		pyPyLock()
 		err = val.connect()
-		pyPyUnlock()
 	} else {
 		err = fmt.Errorf("sessionID %v does not exist", sessionID)
 	}
@@ -158,11 +136,9 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 	sessionMutex.RUnlock()
 
 	if ok {
-		pyPyLock()
 		result, err = val.getJSON(oid)
-		pyPyUnlock()
 	} else {
-		err = errors.New(fmt.Sprintf("sessionID %v does not exist", sessionID))
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
 	}
 
 	return result, err
@@ -183,39 +159,42 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	sessionMutex.RUnlock()
 
 	if ok {
-		pyPyLock()
 		result, err = val.getNextJSON(oid)
-		pyPyUnlock()
 	} else {
-		err = errors.New(fmt.Sprintf("sessionID %v does not exist", sessionID))
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
 	}
 
 	return result, err
 }
 
 // RPCClose calls .close on the Session identified by the sessionID
-func RPCClose(sessionID uint64) error {
+func RPCClose(sessionID uint64) (err error) {
 	if !GetPyPy() {
 		tState := releaseGIL()
 		defer reacquireGIL(tState)
 	}
 
-	var err error
-
 	sessionMutex.RLock()
 	val, ok := sessions[sessionID]
 	sessionMutex.RUnlock()
 
-	if ok {
-		pyPyLock()
-		err = val.close()
-		pyPyUnlock()
-		sessionMutex.Lock()
-		delete(sessions, sessionID)
-		sessionMutex.Unlock()
-	} else {
-		err = errors.New(fmt.Sprintf("sessionID %v does not exist; only %v", sessionID, sessions))
+	if !ok {
+		return fmt.Errorf("sessionID %v does not exist; only %v", sessionID, sessions)
 	}
+
+	sessionMutex.Lock()
+	delete(sessions, sessionID)
+	sessionMutex.Unlock()
+
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("RPCClose", sessionID, val, handledError)
+			}
+		}
+	}(val)
+
+	err = val.close()
 
 	return err
 }

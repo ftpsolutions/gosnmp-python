@@ -1,6 +1,7 @@
 from sys import version as python_version
 
-from common import handle_exception, handle_multi_result_json, handle_multi_result
+from common import (handle_exception, handle_multi_result,
+                    handle_multi_result_json)
 
 if 'pypy' not in python_version.strip().lower():
     from py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, \
@@ -99,7 +100,7 @@ def create_snmpv2c_session(hostname, community, port=161, timeout=5, retries=1):
 def create_snmpv3_session(hostname, security_username, security_level, auth_password, auth_protocol, privacy_password,
                           privacy_protocol, context_name=None, port=161, timeout=5, retries=1):
     context_name = context_name if context_name is not None else ''
-    
+
     session_id = _new_rpc_session_v3(
         str(hostname),
         int(port),

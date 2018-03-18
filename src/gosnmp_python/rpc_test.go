@@ -1,7 +1,6 @@
 package gosnmp_python
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
@@ -9,30 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPyPyLock(t *testing.T) {
-	a := assert.New(t)
-
-	runningPyPy = true
-
-	pyPyLock()
-
-	a.Equal(
-		int64(1),
-		reflect.ValueOf(sessionMutex).FieldByName("w").FieldByName("state").Int(),
-	)
-}
-
-func TestPyPyUnLock(t *testing.T) {
-	a := assert.New(t)
-
-	runningPyPy = true
-
-	pyPyUnlock()
-
-	a.Equal(
-		int64(0),
-		reflect.ValueOf(sessionMutex).FieldByName("w").FieldByName("state").Int(),
-	)
+func init() {
+	setTesting()
 }
 
 func TestNewRPCSessionV1(t *testing.T) {
