@@ -3,6 +3,7 @@ package gosnmp_python
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -21,7 +22,7 @@ func init() {
 func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) {
 	log.Printf(
 		fmt.Sprintf(
-			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n", extra, sessionID, s.getSNMP(), err,
+			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n\nStack trace follows:\n\n%v", extra, sessionID, s.getSNMP(), err, string(debug.Stack()),
 		),
 	)
 }

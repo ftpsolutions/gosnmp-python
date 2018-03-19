@@ -125,10 +125,12 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 		return multiResult, nil
 
 	case gosnmp.Integer:
-		fallthrough
-	case gosnmp.TimeTicks:
 		multiResult.Type = "int"
 		multiResult.IntValue = value.(int)
+		return multiResult, nil
+	case gosnmp.TimeTicks:
+		multiResult.Type = "int"
+		multiResult.IntValue = int(value.(uint))
 		return multiResult, nil
 
 	case gosnmp.Opaque:

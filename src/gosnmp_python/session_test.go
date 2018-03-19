@@ -153,7 +153,7 @@ func TestBuildMultiResult(t *testing.T) {
 			nil,
 			testOID,
 			gosnmp.TimeTicks,
-			int(1337),
+			uint(1337),
 		},
 		{
 			multiResult{OID: testOID, Type: "float", FloatValue: 1337.1337},
