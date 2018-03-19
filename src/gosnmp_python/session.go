@@ -172,7 +172,8 @@ type sessionInterface interface {
 }
 
 type session struct {
-	snmp wrappedSNMPInterface
+	snmp      wrappedSNMPInterface
+	connected bool // used to avoid weird memory errors if the underlying connect fails (snmp object left in insane state)
 }
 
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
@@ -252,7 +253,11 @@ func (s *session) getSNMP() *gosnmp.GoSNMP {
 }
 
 func (s *session) connect() error {
-	return s.snmp.connect()
+	err := s.snmp.connect()
+
+	s.connected = err == nil
+
+	return err
 }
 
 func (s *session) get(oid string) (multiResult, error) {
@@ -342,9 +347,15 @@ func (s *session) getNextJSON(oid string) (string, error) {
 }
 
 func (s *session) close() error {
-	err := s.snmp.close()
+	var err error
 
-	s.snmp = nil // seems to be important for Go's garbage collector
+	if s.connected {
+		err = s.snmp.close()
+	}
+
+	s.snmp = nil // should mean no more references which should permit cleanup
+
+	s.connected = false
 
 	return err
 }

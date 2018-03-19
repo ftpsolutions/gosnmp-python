@@ -60,6 +60,8 @@ class ConstructorsTest(unittest.TestCase):
     @patch('gosnmp_python.rpc_session.RPCSession')
     @patch('gosnmp_python.rpc_session._new_rpc_session_v1')
     def test_create_snmpv1_session(self, go_session_constructor, py_session_constructor):
+        go_session_constructor.return_value = -1
+
         subject = create_snmpv1_session(
             hostname=u'some_hostname',
             community=u'some_community',
@@ -78,7 +80,7 @@ class ConstructorsTest(unittest.TestCase):
         assert_that(
             py_session_constructor.mock_calls,
             equal_to([
-                call(session_id=go_session_constructor())
+                call(community=u'some_community', hostname=u'some_hostname', port='161', retries='1', session_id=-1, timeout='5')
             ])
         )
 
@@ -92,6 +94,8 @@ class ConstructorsTest(unittest.TestCase):
     @patch('gosnmp_python.rpc_session.RPCSession')
     @patch('gosnmp_python.rpc_session._new_rpc_session_v2c')
     def test_create_snmpv2c_session(self, go_session_constructor, py_session_constructor):
+        go_session_constructor.return_value = -1
+
         subject = create_snmpv2c_session(
             hostname=u'some_hostname',
             community=u'some_community',
@@ -110,7 +114,13 @@ class ConstructorsTest(unittest.TestCase):
         assert_that(
             py_session_constructor.mock_calls,
             equal_to([
-                call(session_id=go_session_constructor())
+                call(
+                    community=u'some_community',
+                    hostname=u'some_hostname',
+                    port='161',
+                    retries='1',
+                    session_id=-1,
+                    timeout='5')
             ])
         )
 
@@ -124,6 +134,8 @@ class ConstructorsTest(unittest.TestCase):
     @patch('gosnmp_python.rpc_session.RPCSession')
     @patch('gosnmp_python.rpc_session._new_rpc_session_v3')
     def test_create_snmpv3_session(self, go_session_constructor, py_session_constructor):
+        go_session_constructor.return_value = -1
+
         subject = create_snmpv3_session(
             hostname=u'some_hostname',
             security_username=u'some_username',
@@ -160,7 +172,19 @@ class ConstructorsTest(unittest.TestCase):
         assert_that(
             py_session_constructor.mock_calls,
             equal_to([
-                call(session_id=go_session_constructor())
+                call(
+                    auth_password=u'some_password',
+                    auth_protocol=u'SHA',
+                    context_name=u'some_context_name',
+                    hostname=u'some_hostname',
+                    port='161',
+                    privacy_password=u'other_password',
+                    privacy_protocol=u'AES',
+                    retries='1',
+                    security_level=u'authPriv',
+                    security_username=u'some_username',
+                    session_id=-1,
+                    timeout='5')
             ])
         )
 

@@ -17,8 +17,13 @@ func init() {
 	time.Sleep(time.Second) // give the Python side a little time to settle
 }
 
+// this is used to ensure the Go runtime keeps operating in the event of strange errors
 func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) {
-	log.Printf(fmt.Sprintf("Handled \"%v\" in %v for %v - %+v\n", err, extra, sessionID, s.getSNMP()))
+	log.Printf(
+		fmt.Sprintf(
+			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n", extra, sessionID, s.getSNMP(), err,
+		),
+	)
 }
 
 // NewRPCSessionV1 creates a new Session for SNMPv1 and returns the sessionID
@@ -112,6 +117,16 @@ func RPCConnect(sessionID uint64) error {
 	val, ok := sessions[sessionID]
 	sessionMutex.RUnlock()
 
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("getNextJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
 	if ok {
 		err = val.connect()
 	} else {
@@ -135,6 +150,16 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 	val, ok := sessions[sessionID]
 	sessionMutex.RUnlock()
 
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("getNextJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
 	if ok {
 		result, err = val.getJSON(oid)
 	} else {
@@ -157,6 +182,16 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	sessionMutex.RLock()
 	val, ok := sessions[sessionID]
 	sessionMutex.RUnlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("getNextJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
 
 	if ok {
 		result, err = val.getNextJSON(oid)
@@ -186,6 +221,7 @@ func RPCClose(sessionID uint64) (err error) {
 	delete(sessions, sessionID)
 	sessionMutex.Unlock()
 
+	// permit recovering from a panic silently (bury the error)
 	defer func(s sessionInterface) {
 		if r := recover(); r != nil {
 			if handledError, _ := r.(error); handledError != nil {

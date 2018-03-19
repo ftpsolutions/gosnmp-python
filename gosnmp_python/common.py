@@ -44,11 +44,17 @@ def handle_exception(method, args):
         ))
 
 
-def handle_multi_result_json(multi_result_json_string):
+def handle_multi_result_json(multi_result_json_string, session=None):
     try:
         multi_result_json = json.loads(multi_result_json_string)
     except ValueError as e:
-        raise ValueError('{0} while parsing {1}'.format(e, repr(multi_result_json_string)))
+        raise ValueError(
+            '{0} raised {1} while parsing {2}'.format(
+                session,
+                e, 
+                repr(multi_result_json_string)
+                )
+            )
 
     return MultiResult(**multi_result_json)
 
