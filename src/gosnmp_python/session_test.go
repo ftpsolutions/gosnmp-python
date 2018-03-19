@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/initialed85/gosnmp"
+	"github.com/soniah/gosnmp"
 	"github.com/stretchr/testify/assert"
 )
 

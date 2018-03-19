@@ -2,8 +2,9 @@ package gosnmp_python
 
 import (
 	"testing"
+
+	"github.com/soniah/gosnmp"
 	"github.com/stretchr/testify/assert"
-	"github.com/initialed85/gosnmp"
 )
 
 func TestWrappedSNMPGetSNMP(t *testing.T) {

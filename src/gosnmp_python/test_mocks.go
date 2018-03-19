@@ -3,9 +3,10 @@
 package gosnmp_python
 
 import (
-	"github.com/initialed85/gosnmp"
 	"encoding/json"
 	"net"
+
+	"github.com/soniah/gosnmp"
 )
 
 type mockSession struct{}

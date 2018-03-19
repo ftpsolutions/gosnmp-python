@@ -1,8 +1,9 @@
 package gosnmp_python
 
 import (
-	"github.com/initialed85/gosnmp"
 	"net"
+
+	"github.com/soniah/gosnmp"
 )
 
 type wrappedSNMPInterface interface {
