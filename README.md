@@ -8,8 +8,7 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 
 * Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
 * I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)
-* PyPy seems to have memory problems (particularly when closing/opening lots of sessions in multiple threads)
-    * I've put lots of mutexes in that apply only when PyPy is running- still seems flaky
+* Seems to have some odd memory problems with PyPy (via CFFI); lots of locks and stuff to try and alleviate that
 
 #### How do I make use of this?
 
@@ -17,7 +16,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Prerequisites
 
-* Go 1.9
+* Go 1.9 or Go 1.10
 * Python 2.7.14+, or PyPy 5.9+ (PyPy is a bit unstable at the moment)
 * pip
 * virtualenvwrapper
@@ -34,7 +33,6 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 * gopy doesn't like Go interfaces; so make sure you don't have any public (exported) interfaces
     * this includes a struct with a public property that may eventually lead to an interface
-    * e.g. Session.snmp is private (because that object leads to gosnmp which has interfaces)
 
 #### Example Go RPCSession usage (simple session ID, calls return JSON)
 
