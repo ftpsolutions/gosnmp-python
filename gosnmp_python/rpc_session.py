@@ -45,6 +45,12 @@ class RPCSession(object):
         self._session_id = session_id
         self._kwargs = kwargs
 
+    def __del__(self):
+        try:
+            self.close()
+        except BaseException:
+            pass
+
     def __repr__(self):
         return '{0}(session_id={1}, {2})'.format(
             self.__class__.__name__,

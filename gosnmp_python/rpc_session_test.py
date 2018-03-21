@@ -1,6 +1,7 @@
 import unittest
+import gc
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, greater_than_or_equal_to
 from mock import call, patch
 
 from common import SNMPVariable
@@ -15,10 +16,26 @@ class SessionTest(unittest.TestCase):
             session_id=0,
         )
 
+    @patch('gosnmp_python.rpc_session.RPCConnect')
+    def test_connect(self, rpc_call):
+        rpc_call.return_value = None
+
+        assert_that(
+            self._subject.connect(),
+            equal_to(None)
+        )
+
+        assert_that(
+            rpc_call.mock_calls,
+            equal_to([
+                call(0)
+            ])
+        )
+
     @patch('gosnmp_python.rpc_session.RPCGet')
     @patch('gosnmp_python.rpc_session.handle_multi_result')
     @patch('gosnmp_python.rpc_session.handle_multi_result_json')
-    def test_get(self, handle_multi_result_json, handle_multi_result, rpc_get):
+    def test_get(self, handle_multi_result_json, handle_multi_result, rpc_call):
         handle_multi_result.return_value = _SNMP_VARIABLE
 
         assert_that(
@@ -29,7 +46,7 @@ class SessionTest(unittest.TestCase):
         )
 
         assert_that(
-            rpc_get.mock_calls,
+            rpc_call.mock_calls,
             equal_to([
                 call.RPCGet(0, '1.2.3.4')
             ])
@@ -38,7 +55,7 @@ class SessionTest(unittest.TestCase):
     @patch('gosnmp_python.rpc_session.RPCGetNext')
     @patch('gosnmp_python.rpc_session.handle_multi_result')
     @patch('gosnmp_python.rpc_session.handle_multi_result_json')
-    def test_get_next(self, handle_multi_result_json, handle_multi_result, rpc_get_next):
+    def test_get_next(self, handle_multi_result_json, handle_multi_result, rpc_call):
         handle_multi_result.return_value = _SNMP_VARIABLE
 
         assert_that(
@@ -49,10 +66,39 @@ class SessionTest(unittest.TestCase):
         )
 
         assert_that(
-            rpc_get_next.mock_calls,
+            rpc_call.mock_calls,
             equal_to([
                 call.RPCGetNext(0, '1.2.3.3')
             ])
+        )
+
+    @patch('gosnmp_python.rpc_session.RPCClose')
+    def test_close(self, rpc_call):
+        rpc_call.return_value = None
+
+        assert_that(
+            self._subject.close(),
+            equal_to(None)
+        )
+
+        assert_that(
+            rpc_call.mock_calls,
+            equal_to([
+                call(0)
+            ])
+        )
+
+    @patch('gosnmp_python.rpc_session.RPCClose')
+    def test_del(self, rpc_call):
+        rpc_call.return_value = None
+
+        del(self._subject)
+
+        gc.collect()
+
+        assert_that(
+            len(rpc_call.mock_calls),
+            greater_than_or_equal_to(1)
         )
 
 
@@ -80,7 +126,13 @@ class ConstructorsTest(unittest.TestCase):
         assert_that(
             py_session_constructor.mock_calls,
             equal_to([
-                call(community=u'some_community', hostname=u'some_hostname', port='161', retries='1', session_id=-1, timeout='5')
+                call(
+                    community=u'some_community',
+                    hostname=u'some_hostname',
+                    port='161',
+                    retries='1',
+                    session_id=-1,
+                    timeout='5')
             ])
         )
 

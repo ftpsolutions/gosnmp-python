@@ -1,10 +1,8 @@
 ## gosnmp-python
 
-The purpose of this module is to provide a Python interface to the Golang
-[gosnmp](https://github.com/soniah/gosnmp) module.
+The purpose of this module is to provide a Python interface to the Golang [gosnmp](https://github.com/soniah/gosnmp) module.
 
-It was made very easy with the help of the Golang
-[gopy](https://github.com/go-python/gopy) module.
+It was made very easy with the help of the Golang [gopy](https://github.com/go-python/gopy) module.
 
 #### Limitations
 
@@ -40,8 +38,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Example Go RPCSession usage (simple session ID, calls return JSON)
 
-There's no real reason why you'd want to do this (just use gosnmp on it's own)- it's more 
-for reference:
+There's no real reason why you'd want to do this (just use gosnmp on it's own)- it's more for reference:
 
 ```
 package main
@@ -111,8 +108,6 @@ SNMPVariable(
 )
 ```
  
-Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional,
-I was originally using that but I think its got some underlying thread-safety issues on the C side (particularly
-to do with SNMPv3).
+Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional, I was originally using that but I think its got some underlying thread-safety issues on the C side (particularly to do with SNMPv3).
 
 No offence to the guys that contribute to that project- it's served me very well.

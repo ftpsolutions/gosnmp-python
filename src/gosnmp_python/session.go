@@ -255,6 +255,10 @@ func (s *session) getSNMP() *gosnmp.GoSNMP {
 }
 
 func (s *session) connect() error {
+	if s.connected {
+		return nil
+	}
+
 	err := s.snmp.connect()
 
 	s.connected = err == nil
@@ -349,11 +353,11 @@ func (s *session) getNextJSON(oid string) (string, error) {
 }
 
 func (s *session) close() error {
-	var err error
-
-	if s.connected {
-		err = s.snmp.close()
+	if !s.connected {
+		return nil
 	}
+
+	err := s.snmp.close()
 
 	s.snmp = nil // should mean no more references which should permit cleanup
 

@@ -22,7 +22,12 @@ func init() {
 func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) {
 	log.Printf(
 		fmt.Sprintf(
-			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n\nStack trace follows:\n\n%v", extra, sessionID, s.getSNMP(), err, string(debug.Stack()),
+			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n\nStack trace follows:\n\n%v",
+			extra,
+			sessionID,
+			s.getSNMP(),
+			err,
+			string(debug.Stack()),
 		),
 	)
 }
@@ -122,7 +127,7 @@ func RPCConnect(sessionID uint64) error {
 	defer func(s sessionInterface) {
 		if r := recover(); r != nil {
 			if handledError, _ := r.(error); handledError != nil {
-				handlePanic("getNextJSON", sessionID, val, handledError)
+				handlePanic("connect", sessionID, val, handledError)
 				err = handledError
 			}
 		}
@@ -155,7 +160,7 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 	defer func(s sessionInterface) {
 		if r := recover(); r != nil {
 			if handledError, _ := r.(error); handledError != nil {
-				handlePanic("getNextJSON", sessionID, val, handledError)
+				handlePanic("getJSON", sessionID, val, handledError)
 				err = handledError
 			}
 		}
@@ -204,7 +209,7 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 }
 
 // RPCClose calls .close on the Session identified by the sessionID
-func RPCClose(sessionID uint64) (err error) {
+func RPCClose(sessionID uint64) error {
 	if !GetPyPy() {
 		tState := releaseGIL()
 		defer reacquireGIL(tState)
@@ -226,12 +231,10 @@ func RPCClose(sessionID uint64) (err error) {
 	defer func(s sessionInterface) {
 		if r := recover(); r != nil {
 			if handledError, _ := r.(error); handledError != nil {
-				handlePanic("RPCClose", sessionID, val, handledError)
+				handlePanic("close", sessionID, val, handledError)
 			}
 		}
 	}(val)
 
-	err = val.close()
-
-	return err
+	return val.close()
 }
