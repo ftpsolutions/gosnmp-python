@@ -353,15 +353,12 @@ func (s *session) getNextJSON(oid string) (string, error) {
 }
 
 func (s *session) close() error {
-	if !s.connected {
-		return nil
+	if s.snmp != nil {
+		s.snmp.close()
+		s.snmp = nil
 	}
-
-	err := s.snmp.close()
-
-	s.snmp = nil // should mean no more references which should permit cleanup
 
 	s.connected = false
 
-	return err
+	return nil
 }

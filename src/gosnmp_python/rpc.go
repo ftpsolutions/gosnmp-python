@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var sessionMutex sync.RWMutex
+var sessionMutex sync.Mutex
 var sessions map[uint64]sessionInterface
 var lastSessionID uint64
 
@@ -119,9 +119,9 @@ func RPCConnect(sessionID uint64) error {
 
 	var err error
 
-	sessionMutex.RLock()
+	sessionMutex.Lock()
 	val, ok := sessions[sessionID]
-	sessionMutex.RUnlock()
+	sessionMutex.Unlock()
 
 	// permit recovering from a panic but return the error
 	defer func(s sessionInterface) {
@@ -152,9 +152,9 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 	var err error
 	var result string
 
-	sessionMutex.RLock()
+	sessionMutex.Lock()
 	val, ok := sessions[sessionID]
-	sessionMutex.RUnlock()
+	sessionMutex.Unlock()
 
 	// permit recovering from a panic but return the error
 	defer func(s sessionInterface) {
@@ -185,9 +185,9 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	var err error
 	var result string
 
-	sessionMutex.RLock()
+	sessionMutex.Lock()
 	val, ok := sessions[sessionID]
-	sessionMutex.RUnlock()
+	sessionMutex.Unlock()
 
 	// permit recovering from a panic but return the error
 	defer func(s sessionInterface) {
@@ -215,12 +215,12 @@ func RPCClose(sessionID uint64) error {
 		defer reacquireGIL(tState)
 	}
 
-	sessionMutex.RLock()
+	sessionMutex.Lock()
 	val, ok := sessions[sessionID]
-	sessionMutex.RUnlock()
+	sessionMutex.Unlock()
 
 	if !ok {
-		return fmt.Errorf("sessionID %v does not exist; only %v", sessionID, sessions)
+		return nil
 	}
 
 	sessionMutex.Lock()
