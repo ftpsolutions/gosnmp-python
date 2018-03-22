@@ -59,14 +59,12 @@ class RPCSession(object):
         )
 
     def connect(self):
-        return handle_exception(
-            RPCConnect, (self._session_id,)
-        )
+        return handle_exception(RPCConnect, (self._session_id, ), self)
 
     def get(self, oid):
         return handle_multi_result(
             handle_multi_result_json(
-                handle_exception(RPCGet, (self._session_id, oid,)),
+                handle_exception(RPCGet, (self._session_id, oid.encode('ascii')), self),
                 self,
             )
         )
@@ -74,15 +72,13 @@ class RPCSession(object):
     def get_next(self, oid):
         return handle_multi_result(
             handle_multi_result_json(
-                handle_exception(RPCGetNext, (self._session_id, oid,)),
+                handle_exception(RPCGetNext, (self._session_id, oid.encode('ascii')), self),
                 self,
             ),
         )
 
     def close(self):
-        return handle_exception(
-            RPCClose, (self._session_id,),
-        )
+        return handle_exception(RPCClose, (self._session_id, ), self)
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):

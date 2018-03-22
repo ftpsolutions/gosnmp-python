@@ -35,13 +35,15 @@ class GoRuntimeError(Exception):
     pass
 
 
-def handle_exception(method, args):
+def handle_exception(method, args, other=None):
     try:
         return method(*args)
     except RuntimeError as e:
-        raise GoRuntimeError('{0} raised on Go side while calling {1} with args {2}'.format(
-            repr(e), method, repr(args),
-        ))
+        raise GoRuntimeError(
+            '{0} raised on Go side while calling {1} with args {2} from {3}'.format(
+                repr(e), repr(method), repr(args), repr(other)
+            )
+        )
 
 
 def handle_multi_result_json(multi_result_json_string, session=None):
@@ -51,10 +53,10 @@ def handle_multi_result_json(multi_result_json_string, session=None):
         raise ValueError(
             '{0} raised {1} while parsing {2}'.format(
                 session,
-                e, 
+                e,
                 repr(multi_result_json_string)
-                )
             )
+        )
 
     return MultiResult(**multi_result_json)
 
@@ -108,6 +110,4 @@ def handle_multi_result(multi_result):
             value=multi_result.StringValue,
         )
 
-    raise UnknownSNMPTypeError('{0} represents an unknown SNMP type'.format(
-        multi_result
-    ))
+    raise UnknownSNMPTypeError('{0} represents an unknown SNMP type'.format(multi_result))
