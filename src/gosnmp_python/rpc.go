@@ -25,7 +25,7 @@ func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) 
 			"handlePanic() for %v()\n\tSessionID: %v\n\tSession: %+v\n\tError: %v\n\nStack trace follows:\n\n%v",
 			extra,
 			sessionID,
-			s.getSNMP(),
+			s,
 			err,
 			string(debug.Stack()),
 		),
