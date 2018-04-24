@@ -27,7 +27,7 @@ else:  # for all versions of PyPy and also Python3
 
     SetPyPy()
 
-    print('WARNING: PyPy detected- be prepared for very odd behaviour')
+    print('WARNING: PyPy or Python3 detected, will use CFFI- be prepared for very odd behaviour')
 
 
 _new_session_lock = RLock()
