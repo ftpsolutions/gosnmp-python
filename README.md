@@ -17,7 +17,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 #### Prerequisites
 
 * Go 1.9 or Go 1.10
-* Python 2.7.14+, or PyPy 5.9+ (PyPy is a bit unstable at the moment)
+* Python 2.7+, Python 3.5+, PyPy 5.10+ or PyPy3 5.10+
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
@@ -27,7 +27,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 * ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-python``` 
 * ```pip install -r requirements-dev.txt```
 * ```./build.sh```
-* ```py.test -v```
+* ```GODEBUG=cgocheck=0 py.test -v```
 
 #### What's worth knowing if I want to further the development?
 

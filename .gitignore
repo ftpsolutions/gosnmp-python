@@ -12,3 +12,6 @@ gosnmp_python.py
 gopy
 prebuilt
 .cache
+.pytest_cache
+.vscode
+main.go
