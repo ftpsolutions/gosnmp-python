@@ -3,7 +3,7 @@ package gosnmp_python
 import (
 	"testing"
 
-	"github.com/soniah/gosnmp"
+	"github.com/ftpsolutions/gosnmp"
 	"github.com/stretchr/testify/assert"
 )
 

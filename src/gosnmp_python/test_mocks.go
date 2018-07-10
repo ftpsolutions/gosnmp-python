@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/soniah/gosnmp"
+	"github.com/ftpsolutions/gosnmp"
 )
 
 type mockSession struct{}

@@ -3,7 +3,7 @@ package gosnmp_python
 import (
 	"net"
 
-	"github.com/soniah/gosnmp"
+	"github.com/ftpsolutions/gosnmp"
 )
 
 type wrappedSNMPInterface interface {

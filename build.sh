@@ -37,11 +37,13 @@ if [[ "$1" != "fast" ]]; then
     echo ""
 
     echo "getting gosnmp"
-    go get -v -a github.com/soniah/gosnmp
+    # go get -v -a github.com/soniah/gosnmp
+    go get -v -a github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "building gosnmp"
-    go build -a -x github.com/soniah/gosnmp
+    # go build -a -x github.com/soniah/gosnmp
+    go build -a -x github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "getting gopy"

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soniah/gosnmp"
+	"github.com/ftpsolutions/gosnmp"
 )
 
 type multiResult struct {
