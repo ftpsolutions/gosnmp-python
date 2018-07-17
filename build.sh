@@ -75,3 +75,7 @@ echo ""
 echo "build gosnmp_python bindings for cffi"
 ./gopy bind -lang="cffi" -output="gosnmp_python/cffi" -symbols=true -work=false gosnmp_python
 echo ""
+
+echo "cleaning up"
+find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+echo ""

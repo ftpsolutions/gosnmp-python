@@ -1,14 +1,15 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import chr
-from builtins import *
-import json
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
+import json
+from builtins import *
+from builtins import chr
 from collections import namedtuple
+
+from future import standard_library
+
+standard_library.install_aliases()
+
 
 SNMPVariable = namedtuple(
     'SNMPVariable', [

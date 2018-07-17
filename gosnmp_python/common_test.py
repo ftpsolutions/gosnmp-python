@@ -1,16 +1,19 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import unittest
+from builtins import *
 from collections import namedtuple
 
-from hamcrest import assert_that, equal_to, calling, raises
+from future import standard_library
+from hamcrest import assert_that, calling, equal_to, raises
 
-from .common import SNMPVariable, handle_multi_result, handle_multi_result_json, UnknownSNMPTypeError
+from .common import (SNMPVariable, UnknownSNMPTypeError, handle_multi_result,
+                     handle_multi_result_json)
+
+standard_library.install_aliases()
+
+
 
 # this is what comes across the border from Go for .Get and .GetNext
 MultiResult = namedtuple('MultiResult', [
