@@ -354,8 +354,10 @@ func (s *session) getNextJSON(oid string) (string, error) {
 
 func (s *session) close() error {
 	if s.snmp != nil {
-		s.snmp.close()
-		s.snmp = nil
+		if s.snmp.getConn() != nil {
+			s.snmp.close()
+			s.snmp = nil
+		}
 	}
 
 	s.connected = false
