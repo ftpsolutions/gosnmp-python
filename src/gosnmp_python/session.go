@@ -10,6 +10,26 @@ import (
 	"github.com/ftpsolutions/gosnmp"
 )
 
+const (
+	usmStatsBaseOID = ".1.3.6.1.6.3.15.1.1"
+)
+
+var usmStatsLookup = map[string]string{
+	".1.3.6.1.6.3.15.1.1.1.0": "usmStatsUnsupportedSecLevels",
+	".1.3.6.1.6.3.15.1.1.2.0": "usmStatsNotInTimeWindows",
+	".1.3.6.1.6.3.15.1.1.3.0": "usmStatsUnknownUserNames",
+	".1.3.6.1.6.3.15.1.1.4.0": "usmStatsUnknownEngineIDs",
+	".1.3.6.1.6.3.15.1.1.5.0": "usmStatsWrongDigests",
+	".1.3.6.1.6.3.15.1.1.6.0": "usmStatsDecryptionErrors",
+}
+
+var usmIgnoreTypes = map[gosnmp.Asn1BER]bool{
+	gosnmp.EndOfContents:  false,
+	gosnmp.NoSuchObject:   false,
+	gosnmp.NoSuchInstance: false,
+	gosnmp.EndOfMibView:   false,
+}
+
 type multiResult struct {
 	OID              string
 	Type             string
@@ -30,12 +50,10 @@ func getSecurityLevel(securityLevel string) gosnmp.SnmpV3MsgFlags {
 	actualSecurityLevel := gosnmp.NoAuthNoPriv
 
 	switch securityLevel {
-
 	case "authnopriv":
 		actualSecurityLevel = gosnmp.AuthNoPriv
 	case "authpriv":
 		actualSecurityLevel = gosnmp.AuthPriv
-
 	}
 
 	return actualSecurityLevel
@@ -163,6 +181,51 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	return multiResult, fmt.Errorf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
 }
 
+func checkVariableCount(oid string, result *gosnmp.SnmpPacket) error {
+	if len(result.Variables) != 1 {
+		return fmt.Errorf(
+			"get(%+v) returned %+v variables; this is unexpected (should have been 1)",
+			oid,
+			len(result.Variables),
+		)
+	}
+
+	return nil
+}
+
+func translateUsmStats(oid string) string {
+	val, ok := usmStatsLookup[oid]
+	if !ok {
+		return "unknown; no mapping for this OID"
+	}
+
+	return val
+}
+
+func checkForSNMPv3Issues(oid string, result *gosnmp.SnmpPacket) error {
+	if result.Version != gosnmp.Version3 {
+		return nil
+	}
+
+	_, ok := usmIgnoreTypes[result.Variables[0].Type]
+	if ok {
+		return nil
+	}
+
+	if strings.HasPrefix(result.Variables[0].Name, usmStatsBaseOID) {
+		return fmt.Errorf(
+			"requested %+v and got %+v (type %+v, value %+v); likely an SNMPv3 auth/priv issue- resolves to '%+v'",
+			oid,
+			result.Variables[0].Name,
+			result.Variables[0].Type,
+			result.Variables[0].Value,
+			translateUsmStats(result.Variables[0].Name),
+		)
+	}
+
+	return nil
+}
+
 type sessionInterface interface {
 	getSNMP() *gosnmp.GoSNMP
 	connect() error
@@ -233,10 +296,10 @@ func newSessionV3(hostname string, port int, contextName, securityUsername, priv
 			MsgFlags:      getSecurityLevel(securityLevel),
 			SecurityParameters: &gosnmp.UsmSecurityParameters{
 				UserName:                 securityUsername,
-				AuthenticationProtocol:   actualAuthProtocol,
 				AuthenticationPassphrase: actualAuthPassword,
-				PrivacyProtocol:          actualPrivProtocol,
+				AuthenticationProtocol:   actualAuthProtocol,
 				PrivacyPassphrase:        actualPrivPassword,
+				PrivacyProtocol:          actualPrivProtocol,
 			},
 			MaxOids:     math.MaxInt32,
 			ContextName: contextName,
@@ -274,6 +337,11 @@ func (s *session) get(oid string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	err = checkForSNMPv3Issues(oid, result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
 	multiResult, err := buildMultiResult(
 		result.Variables[0].Name,
 		result.Variables[0].Type,
@@ -287,16 +355,7 @@ func (s *session) get(oid string) (multiResult, error) {
 }
 
 func (s *session) getJSON(oid string) (string, error) {
-	result, err := s.snmp.get([]string{oid})
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
+	multiResult, err := s.get(oid)
 	if err != nil {
 		return "{}", err
 	}
@@ -317,6 +376,16 @@ func (s *session) getNext(oid string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	err = checkVariableCount(oid, result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
 	multiResult, err := buildMultiResult(
 		result.Variables[0].Name,
 		result.Variables[0].Type,
@@ -330,16 +399,7 @@ func (s *session) getNext(oid string) (multiResult, error) {
 }
 
 func (s *session) getNextJSON(oid string) (string, error) {
-	result, err := s.snmp.getNext([]string{oid})
-	if err != nil {
-		return "{}", err
-	}
-
-	multiResult, err := buildMultiResult(
-		result.Variables[0].Name,
-		result.Variables[0].Type,
-		result.Variables[0].Value,
-	)
+	multiResult, err := s.getNext(oid)
 	if err != nil {
 		return "{}", err
 	}
