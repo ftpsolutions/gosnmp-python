@@ -86,13 +86,6 @@ func TestBuildMultiResult(t *testing.T) {
 			nil,
 		},
 		{
-			multiResult{OID: testOID, Type: "noSuchInstance", IsNoSuchInstance: true},
-			nil,
-			testOID,
-			gosnmp.UnknownType,
-			nil,
-		},
-		{
 			multiResult{OID: testOID, Type: "noSuchObject", IsNoSuchObject: true},
 			nil,
 			testOID,
@@ -182,6 +175,13 @@ func TestBuildMultiResult(t *testing.T) {
 			testOID,
 			gosnmp.IPAddress,
 			"something",
+		},
+		{
+			multiResult{OID: testOID},
+			errors.New("Unknown type; oid=1.2.3.4, type=0, value=what even is this?"),
+			testOID,
+			gosnmp.UnknownType,
+			"what even is this?",
 		},
 		{
 			multiResult{OID: testOID},
