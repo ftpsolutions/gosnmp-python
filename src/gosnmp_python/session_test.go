@@ -331,3 +331,51 @@ func TestGetNextJSON(t *testing.T) {
 	a.Equal(testJSON, result)
 	a.Equal(nil, err)
 }
+
+func TestSetString(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setString(testOID, "")
+	a.Equal(multiResult{OID: testOID}, result)
+	a.Equal(nil, err)
+}
+
+func TestSetStringJSON(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setStringJSON(testOID, "")
+	a.Equal(testJSON, result)
+	a.Equal(nil, err)
+}
+
+func TestSetInteger(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setInteger(testOID, 0)
+	a.Equal(multiResult{OID: testOID}, result)
+	a.Equal(nil, err)
+}
+
+func TestSetIntegerJSON(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setIntegerJSON(testOID, 0)
+	a.Equal(testJSON, result)
+	a.Equal(nil, err)
+}
+
+func TestClose(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	a.Equal(nil, subject.close())
+}

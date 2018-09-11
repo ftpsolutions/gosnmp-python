@@ -208,6 +208,72 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	return result, err
 }
 
+// RPCSetString calls .setString on the Session identified by the sessionID
+func RPCSetString(sessionID uint64, oid, value string) (string, error) {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+	var result string
+
+	sessionMutex.Lock()
+	val, ok := sessions[sessionID]
+	sessionMutex.Unlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("setStringJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
+	if ok {
+		result, err = val.setStringJSON(oid, value)
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return result, err
+}
+
+// RPCSetInteger calls .SetInteger on the Session identified by the sessionID
+func RPCSetInteger(sessionID uint64, oid string, value int) (string, error) {
+	if !GetPyPy() {
+		tState := releaseGIL()
+		defer reacquireGIL(tState)
+	}
+
+	var err error
+	var result string
+
+	sessionMutex.Lock()
+	val, ok := sessions[sessionID]
+	sessionMutex.Unlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("SetIntegerJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
+	if ok {
+		result, err = val.setIntegerJSON(oid, value)
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return result, err
+}
+
 // RPCClose calls .close on the Session identified by the sessionID
 func RPCClose(sessionID uint64) error {
 	if !GetPyPy() {

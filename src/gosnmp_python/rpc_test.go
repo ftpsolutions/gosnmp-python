@@ -151,6 +151,36 @@ func TestRPGetNext(t *testing.T) {
 	a.Equal(err, nil)
 }
 
+func TestRPSetString(t *testing.T) {
+	a := assert.New(t)
+
+	sessionID := uint64(0)
+
+	subject := mockSession{}
+
+	sessions[sessionID] = &subject
+
+	result, err := RPCSetString(sessionID, testOID, "")
+
+	a.Equal(result, testJSON)
+	a.Equal(err, nil)
+}
+
+func TestRPSetInteger(t *testing.T) {
+	a := assert.New(t)
+
+	sessionID := uint64(0)
+
+	subject := mockSession{}
+
+	sessions[sessionID] = &subject
+
+	result, err := RPCSetInteger(sessionID, testOID, 0)
+
+	a.Equal(result, testJSON)
+	a.Equal(err, nil)
+}
+
 func TestRPCClose(t *testing.T) {
 	a := assert.New(t)
 

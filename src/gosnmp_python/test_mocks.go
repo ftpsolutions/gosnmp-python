@@ -55,6 +55,42 @@ func (m *mockSession) getNextJSON(oid string) (string, error) {
 	return string(jsonResult), err
 }
 
+func (m *mockSession) setString(oid, value string) (multiResult, error) {
+	return multiResult{OID: oid}, nil
+}
+
+func (m *mockSession) setStringJSON(oid, value string) (string, error) {
+	snmpResult, err := m.setString(oid, value)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResult, err := json.Marshal(snmpResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResult), err
+}
+
+func (m *mockSession) setInteger(oid string, value int) (multiResult, error) {
+	return multiResult{OID: oid}, nil
+}
+
+func (m *mockSession) setIntegerJSON(oid string, value int) (string, error) {
+	snmpResult, err := m.setInteger(oid, value)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResult, err := json.Marshal(snmpResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResult), err
+}
+
 func (m *mockSession) close() error {
 	return nil
 }
@@ -78,6 +114,10 @@ func (m *mockWrappedSNMP) get(oids []string) (result *gosnmp.SnmpPacket, err err
 }
 
 func (m *mockWrappedSNMP) getNext(oids []string) (result *gosnmp.SnmpPacket, err error) {
+	return nil, nil
+}
+
+func (m *mockWrappedSNMP) set(pdus []gosnmp.SnmpPDU) (result *gosnmp.SnmpPacket, err error) {
 	return nil, nil
 }
 

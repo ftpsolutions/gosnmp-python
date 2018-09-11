@@ -61,6 +61,17 @@ func TestWrappedSNMPGetNext(t *testing.T) {
 	a.Equal(nil, err)
 }
 
+func TestWrappedSNMPSet(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockWrappedSNMP{}
+
+	result, err := subject.set([]gosnmp.SnmpPDU{})
+
+	a.Equal((*gosnmp.SnmpPacket)(nil), result)
+	a.Equal(nil, err)
+}
+
 func TestWrappedSNMPClose(t *testing.T) {
 	a := assert.New(t)
 

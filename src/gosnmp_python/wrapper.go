@@ -12,6 +12,7 @@ type wrappedSNMPInterface interface {
 	connect() error
 	get(oids []string) (result *gosnmp.SnmpPacket, err error)
 	getNext(oids []string) (result *gosnmp.SnmpPacket, err error)
+	set(pdus []gosnmp.SnmpPDU) (result *gosnmp.SnmpPacket, err error)
 	close() error
 }
 
@@ -37,6 +38,10 @@ func (w *wrappedSNMP) get(oids []string) (result *gosnmp.SnmpPacket, err error) 
 
 func (w *wrappedSNMP) getNext(oids []string) (result *gosnmp.SnmpPacket, err error) {
 	return w.snmp.GetNext(oids)
+}
+
+func (w *wrappedSNMP) set(pdus []gosnmp.SnmpPDU) (result *gosnmp.SnmpPacket, err error) {
+	return w.snmp.Set(pdus)
 }
 
 func (w *wrappedSNMP) close() error {

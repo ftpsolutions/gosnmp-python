@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/ftpsolutions/gosnmp"
+	"log"
+	"os"
+	"strconv"
 )
 
 const (
@@ -237,12 +240,38 @@ type sessionInterface interface {
 	getJSON(string) (string, error)
 	getNext(string) (multiResult, error)
 	getNextJSON(string) (string, error)
+	setString(string, string) (multiResult, error)
+	setStringJSON(string, string) (string, error)
+	setInteger(string, int) (multiResult, error)
+	setIntegerJSON(string, int) (string, error)
 	close() error
 }
 
 type session struct {
 	snmp      wrappedSNMPInterface
 	connected bool // used to avoid weird memory errors if the underlying connect fails (snmp object left in insane state)
+}
+
+func getLogger(snmpProtocol, hostname string, port int) *log.Logger {
+	envDebug := os.Getenv("GOSNMP_PYTHON_DEBUG")
+	if len(envDebug) <= 0 {
+		return nil
+	}
+
+	debugEnabled, err := strconv.ParseBool(envDebug)
+	if err != nil {
+		return nil
+	}
+
+	if !debugEnabled {
+		return nil
+	}
+
+	return log.New(
+		os.Stdout,
+		fmt.Sprintf("%v:%v:%v\t", snmpProtocol, hostname, port),
+		0,
+	)
 }
 
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
@@ -257,6 +286,8 @@ func newSessionV1(hostname string, port int, community string, timeout, retries 
 			MaxOids:   math.MaxInt32,
 		},
 	}
+
+	snmp.snmp.Logger = getLogger("SNMPv1", hostname, port)
 
 	s := session{
 		snmp: &snmp,
@@ -277,6 +308,8 @@ func newSessionV2c(hostname string, port int, community string, timeout, retries
 			MaxOids:   math.MaxInt32,
 		},
 	}
+
+	snmp.snmp.Logger = getLogger("SNMPv2c", hostname, port)
 
 	s := session{
 		snmp: &snmp,
@@ -309,6 +342,8 @@ func newSessionV3(hostname string, port int, contextName, securityUsername, priv
 			ContextName: contextName,
 		},
 	}
+
+	snmp.snmp.Logger = getLogger("SNMPv3", hostname, port)
 
 	s := session{
 		snmp: &snmp,
@@ -404,6 +439,86 @@ func (s *session) getNext(oid string) (multiResult, error) {
 
 func (s *session) getNextJSON(oid string) (string, error) {
 	multiResult, err := s.getNext(oid)
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "{}", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (s *session) setString(oid, value string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
+
+	pdu := gosnmp.SnmpPDU{
+		Name:  oid,
+		Type:  gosnmp.OctetString,
+		Value: value,
+	}
+
+	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
+	if err != nil {
+		return emptyMultiResult, nil
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	return multiResult, nil
+}
+
+func (s *session) setStringJSON(oid, value string) (string, error) {
+	multiResult, err := s.setString(oid, value)
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "{}", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (s *session) setInteger(oid string, value int) (multiResult, error) {
+	emptyMultiResult := multiResult{}
+
+	pdu := gosnmp.SnmpPDU{
+		Name:  oid,
+		Type:  gosnmp.Integer,
+		Value: value,
+	}
+
+	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
+	if err != nil {
+		return emptyMultiResult, nil
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	return multiResult, nil
+}
+
+func (s *session) setIntegerJSON(oid string, value int) (string, error) {
+	multiResult, err := s.setInteger(oid, value)
 	if err != nil {
 		return "{}", err
 	}
