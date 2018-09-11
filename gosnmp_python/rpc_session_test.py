@@ -3,8 +3,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import gc
 import unittest
-from builtins import *
 
+from builtins import *
 from future import standard_library
 from hamcrest import assert_that, equal_to, greater_than_or_equal_to
 from mock import call, patch
@@ -15,8 +15,6 @@ from .rpc_session import (RPCSession, create_snmpv1_session,
                           create_snmpv2c_session, create_snmpv3_session)
 
 standard_library.install_aliases()
-
-
 
 
 class SessionTest(unittest.TestCase):
@@ -81,6 +79,46 @@ class SessionTest(unittest.TestCase):
             ])
         )
 
+    @patch('gosnmp_python.rpc_session.RPCSetInteger')
+    @patch('gosnmp_python.rpc_session.handle_multi_result')
+    @patch('gosnmp_python.rpc_session.handle_multi_result_json')
+    def test_set_integer(self, handle_multi_result_json, handle_multi_result, rpc_call):
+        handle_multi_result.return_value = _SNMP_VARIABLE
+
+        assert_that(
+            self._subject.set('1.2.3.4', 1),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
+            )
+        )
+
+        assert_that(
+            rpc_call.mock_calls,
+            equal_to([
+                call.RPCSetInteger(0, '1.2.3.4', 1)
+            ])
+        )
+
+    @patch('gosnmp_python.rpc_session.RPCSetString')
+    @patch('gosnmp_python.rpc_session.handle_multi_result')
+    @patch('gosnmp_python.rpc_session.handle_multi_result_json')
+    def test_set_string(self, handle_multi_result_json, handle_multi_result, rpc_call):
+        handle_multi_result.return_value = _SNMP_VARIABLE
+
+        assert_that(
+            self._subject.set('1.2.3.4', 'string'),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
+            )
+        )
+
+        assert_that(
+            rpc_call.mock_calls,
+            equal_to([
+                call.RPCSetString(0, '1.2.3.4', 'string')
+            ])
+        )
+
     @patch('gosnmp_python.rpc_session.RPCClose')
     def test_close(self, rpc_call):
         rpc_call.return_value = None
@@ -101,7 +139,7 @@ class SessionTest(unittest.TestCase):
     def test_del(self, rpc_call):
         rpc_call.return_value = None
 
-        del(self._subject)
+        del (self._subject)
 
         gc.collect()
 

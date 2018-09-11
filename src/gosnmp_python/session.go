@@ -287,7 +287,10 @@ func newSessionV1(hostname string, port int, community string, timeout, retries 
 		},
 	}
 
-	snmp.snmp.Logger = getLogger("SNMPv1", hostname, port)
+	logger := getLogger("SNMPv1", hostname, port)
+	if logger != nil {
+		snmp.snmp.Logger = logger
+	}
 
 	s := session{
 		snmp: &snmp,
@@ -309,7 +312,10 @@ func newSessionV2c(hostname string, port int, community string, timeout, retries
 		},
 	}
 
-	snmp.snmp.Logger = getLogger("SNMPv2c", hostname, port)
+	logger := getLogger("SNMPv2c", hostname, port)
+	if logger != nil {
+		snmp.snmp.Logger = logger
+	}
 
 	s := session{
 		snmp: &snmp,
@@ -343,7 +349,10 @@ func newSessionV3(hostname string, port int, contextName, securityUsername, priv
 		},
 	}
 
-	snmp.snmp.Logger = getLogger("SNMPv3", hostname, port)
+	logger := getLogger("SNMPv3", hostname, port)
+	if logger != nil {
+		snmp.snmp.Logger = logger
+	}
 
 	s := session{
 		snmp: &snmp,

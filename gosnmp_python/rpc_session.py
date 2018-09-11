@@ -1,11 +1,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from builtins import *
-from builtins import object, str
 from sys import version as python_version
 from threading import RLock
 
+from builtins import *
+from builtins import object, str
 from future import standard_library
 
 from .common import (handle_exception, handle_multi_result,
@@ -21,14 +21,15 @@ if version < (3, 0, 0):
     from past.types.oldstr import oldstr as str
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
-    from .py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, RPCGetNext, RPCClose
+    from .py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
+        RPCGetNext, RPCSetInteger, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3
-    from .cffi.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, RPCGetNext, RPCClose
+    from .cffi.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
+        RPCGetNext, RPCSetInteger, RPCSetString, RPCClose
 
     SetPyPy()
 
     print('WARNING: PyPy or Python3 detected, will use CFFI- be prepared for very odd behaviour')
-
 
 _new_session_lock = RLock()
 
@@ -73,7 +74,7 @@ class RPCSession(object):
         )
 
     def connect(self):
-        return handle_exception(RPCConnect, (self._session_id, ), self)
+        return handle_exception(RPCConnect, (self._session_id,), self)
 
     def get(self, oid):
         oid = str(oid)
@@ -95,8 +96,21 @@ class RPCSession(object):
             ),
         )
 
+    def set(self, oid, value):
+        if not isinstance(value, (int, long, str, unicode)):
+            raise TypeError('gosnmp_python only supports SNMP set for integers and strings')
+
+        method = RPCSetInteger if isinstance(value, (int, long)) else RPCSetString
+
+        return handle_multi_result(
+            handle_multi_result_json(
+                handle_exception(method, (self._session_id, oid, value), self),
+                self,
+            ),
+        )
+
     def close(self):
-        return handle_exception(RPCClose, (self._session_id, ), self)
+        return handle_exception(RPCClose, (self._session_id,), self)
 
 
 def create_snmpv1_session(hostname, community, port=161, timeout=5, retries=1):
