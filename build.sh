@@ -33,25 +33,25 @@ fi
 
 if [[ "$1" != "fast" ]]; then
     echo "getting assert"
-    go get -v -a github.com/stretchr/testify/assert
+    go get -v -u github.com/stretchr/testify/assert
     echo ""
 
     echo "getting gosnmp"
-    # go get -v -a github.com/soniah/gosnmp
-    go get -v -a github.com/ftpsolutions/gosnmp
+    # go get -v -u github.com/soniah/gosnmp
+    go get -v -u github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "building gosnmp"
-    # go build -a -x github.com/soniah/gosnmp
-    go build -a -x github.com/ftpsolutions/gosnmp
+    # go build -u -x github.com/soniah/gosnmp
+    go build -x -a github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "getting gopy"
-    go get -v -a github.com/go-python/gopy
+    go get -v -u github.com/go-python/gopy
     echo ""
 
     echo "installing gopy"
-    go install -v -a github.com/go-python/gopy
+    go install -i github.com/go-python/gopy
     echo ""
 
     echo "building gopy"

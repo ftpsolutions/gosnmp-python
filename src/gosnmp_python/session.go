@@ -244,6 +244,8 @@ type sessionInterface interface {
 	setStringJSON(string, string) (string, error)
 	setInteger(string, int) (multiResult, error)
 	setIntegerJSON(string, int) (string, error)
+	setIPAddress(string, string) (multiResult, error)
+	setIPAddressJSON(string, string) (string, error)
 	close() error
 }
 
@@ -528,6 +530,46 @@ func (s *session) setInteger(oid string, value int) (multiResult, error) {
 
 func (s *session) setIntegerJSON(oid string, value int) (string, error) {
 	multiResult, err := s.setInteger(oid, value)
+	if err != nil {
+		return "{}", err
+	}
+
+	multiResultBytes, err := json.Marshal(multiResult)
+	if err != nil {
+		return "{}", err
+	}
+
+	return string(multiResultBytes), nil
+}
+
+func (s *session) setIPAddress(oid, value string) (multiResult, error) {
+	emptyMultiResult := multiResult{}
+
+	pdu := gosnmp.SnmpPDU{
+		Name:  oid,
+		Type:  gosnmp.IPAddress,
+		Value: value,
+	}
+
+	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	multiResult, err := buildMultiResult(
+		result.Variables[0].Name,
+		result.Variables[0].Type,
+		result.Variables[0].Value,
+	)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	return multiResult, nil
+}
+
+func (s *session) setIPAddressJSON(oid, value string) (string, error) {
+	multiResult, err := s.setIPAddress(oid, value)
 	if err != nil {
 		return "{}", err
 	}

@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import re
 from sys import version as python_version
 from threading import RLock
 
@@ -22,10 +23,10 @@ if version < (3, 0, 0):
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
     from .py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
-        RPCGetNext, RPCSetInteger, RPCSetString, RPCClose
+        RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3
     from .cffi.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
-        RPCGetNext, RPCSetInteger, RPCSetString, RPCClose
+        RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 
     SetPyPy()
 
@@ -53,6 +54,11 @@ def _new_rpc_session_v3(*args):
         return handle_exception(
             NewRPCSessionV3, args
         )
+
+
+_IP_ADDRESS = re.compile(
+    '^[0-2]?[0-9]?[0-9]{1}\.[0-2]?[0-9]?[0-9]{1}\.[0-2]?[0-9]?[0-9]{1}\.[0-2]?[0-9]?[0-9]{1}$'
+)
 
 
 class RPCSession(object):
@@ -96,11 +102,17 @@ class RPCSession(object):
             ),
         )
 
-    def set(self, oid, value):
+    def set(self, oid, value, is_ip_address=None):
         if not isinstance(value, (int, long, str, unicode)):
             raise TypeError('gosnmp_python only supports SNMP set for integers and strings')
 
-        method = RPCSetInteger if isinstance(value, (int, long)) else RPCSetString
+        if isinstance(value, basestring):
+            if is_ip_address is True or is_ip_address is None and _IP_ADDRESS.match(value) is not None:
+                method = RPCSetIPAddress
+            else:
+                method = RPCSetString
+        else:
+            method = RPCSetInteger
 
         return handle_multi_result(
             handle_multi_result_json(

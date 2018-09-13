@@ -372,6 +372,26 @@ func TestSetIntegerJSON(t *testing.T) {
 	a.Equal(nil, err)
 }
 
+func TestSetIPAddress(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setIPAddress(testOID, "")
+	a.Equal(multiResult{OID: testOID}, result)
+	a.Equal(nil, err)
+}
+
+func TestSetIPAddressJSON(t *testing.T) {
+	a := assert.New(t)
+
+	subject := mockSession{}
+
+	result, err := subject.setIPAddressJSON(testOID, "")
+	a.Equal(testJSON, result)
+	a.Equal(nil, err)
+}
+
 func TestClose(t *testing.T) {
 	a := assert.New(t)
 

@@ -181,6 +181,21 @@ func TestRPSetInteger(t *testing.T) {
 	a.Equal(err, nil)
 }
 
+func TestRPSetIPAddress(t *testing.T) {
+	a := assert.New(t)
+
+	sessionID := uint64(0)
+
+	subject := mockSession{}
+
+	sessions[sessionID] = &subject
+
+	result, err := RPCSetIPAddress(sessionID, testOID, "")
+
+	a.Equal(result, testJSON)
+	a.Equal(err, nil)
+}
+
 func TestRPCClose(t *testing.T) {
 	a := assert.New(t)
 

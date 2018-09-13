@@ -119,6 +119,26 @@ class SessionTest(unittest.TestCase):
             ])
         )
 
+    @patch('gosnmp_python.rpc_session.RPCSetIPAddress')
+    @patch('gosnmp_python.rpc_session.handle_multi_result')
+    @patch('gosnmp_python.rpc_session.handle_multi_result_json')
+    def test_set_ip_address(self, handle_multi_result_json, handle_multi_result, rpc_call):
+        handle_multi_result.return_value = _SNMP_VARIABLE
+
+        assert_that(
+            self._subject.set('1.2.3.4', '1.2.3.4'),
+            equal_to(
+                SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
+            )
+        )
+
+        assert_that(
+            rpc_call.mock_calls,
+            equal_to([
+                call(0, '1.2.3.4', 'string')
+            ])
+        )
+
     @patch('gosnmp_python.rpc_session.RPCClose')
     def test_close(self, rpc_call):
         rpc_call.return_value = None

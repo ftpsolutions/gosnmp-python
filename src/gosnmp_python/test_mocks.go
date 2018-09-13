@@ -91,6 +91,24 @@ func (m *mockSession) setIntegerJSON(oid string, value int) (string, error) {
 	return string(jsonResult), err
 }
 
+func (m *mockSession) setIPAddress(oid, value string) (multiResult, error) {
+	return multiResult{OID: oid}, nil
+}
+
+func (m *mockSession) setIPAddressJSON(oid, value string) (string, error) {
+	snmpResult, err := m.setIPAddress(oid, value)
+	if err != nil {
+		return "", err
+	}
+
+	jsonResult, err := json.Marshal(snmpResult)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonResult), err
+}
+
 func (m *mockSession) close() error {
 	return nil
 }
