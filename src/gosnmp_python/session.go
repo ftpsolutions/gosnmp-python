@@ -209,6 +209,49 @@ func translateUsmStats(oid string) string {
 	return val
 }
 
+func checkForErrors(result *gosnmp.SnmpPacket) error {
+	switch result.Error {
+	case gosnmp.TooBig:
+		return fmt.Errorf("TooBigError: The size of the Response-PDU would be too large to transport.")
+	case gosnmp.NoSuchName:
+		return fmt.Errorf("NoSuchNameError: The name of a requested object was not found.")
+	case gosnmp.BadValue:
+		return fmt.Errorf("BadValueError: A value in the request didn't match the structure that the recipient of the request had for the object. For example, an object in the request was specified with an incorrect length or type.")
+	case gosnmp.ReadOnly:
+		return fmt.Errorf("ReadOnlyError: An attempt was made to set a variable that has an Access value indicating that it is read-only.")
+	case gosnmp.GenErr:
+		return fmt.Errorf("GenErrError: An error occurred other than one indicated by a more specific error code in this table.")
+	case gosnmp.NoAccess:
+		return fmt.Errorf("NoAccessError: Access was denied to the object for security reasons.")
+	case gosnmp.WrongType:
+		return fmt.Errorf("WrongTypeError: The object type in a variable binding is incorrect for the object.")
+	case gosnmp.WrongLength:
+		return fmt.Errorf("WrongLengthError: A variable binding specifies a length incorrect for the object.")
+	case gosnmp.WrongEncoding:
+		return fmt.Errorf("WrongEncodingError: A variable binding specifies an encoding incorrect for the object.")
+	case gosnmp.WrongValue:
+		return fmt.Errorf("WrongValueError: The value given in a variable binding is not possible for the object.")
+	case gosnmp.NoCreation:
+		return fmt.Errorf("NoCreationError: A specified variable does not exist and cannot be created.")
+	case gosnmp.InconsistentValue:
+		return fmt.Errorf("InconsistentValueError: A variable binding specifies a value that could be held by the variable but cannot be assigned to it at this time.")
+	case gosnmp.ResourceUnavailable:
+		return fmt.Errorf("ResourceUnavailableError: An attempt to set a variable required a resource that is not available.")
+	case gosnmp.CommitFailed:
+		return fmt.Errorf("CommitFailedError: An attempt to set a particular variable failed.")
+	case gosnmp.UndoFailed:
+		return fmt.Errorf("UndoFailedError: An attempt to set a particular variable as part of a group of variables failed, and the attempt to then undo the setting of other variables was not successful.")
+	case gosnmp.AuthorizationError:
+		return fmt.Errorf("AuthorizationErrorError: A problem occurred in authorization.")
+	case gosnmp.NotWritable:
+		return fmt.Errorf("NotWritableError: The variable cannot be written or created.")
+	case gosnmp.InconsistentName:
+		return fmt.Errorf("InconsistentNameError: The name in a variable binding specifies a variable that does not exist.")
+	}
+
+	return nil
+}
+
 func checkForSNMPv3Issues(oid string, result *gosnmp.SnmpPacket) error {
 	if result.Version != gosnmp.Version3 {
 		return nil
@@ -387,6 +430,11 @@ func (s *session) get(oid string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
 	err = checkForSNMPv3Issues(oid, result)
 	if err != nil {
 		return emptyMultiResult, err
@@ -422,6 +470,11 @@ func (s *session) getNext(oid string) (multiResult, error) {
 	emptyMultiResult := multiResult{}
 
 	result, err := s.snmp.getNext([]string{oid})
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForErrors(result)
 	if err != nil {
 		return emptyMultiResult, err
 	}
@@ -473,7 +526,12 @@ func (s *session) setString(oid, value string) (multiResult, error) {
 
 	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
 	if err != nil {
-		return emptyMultiResult, nil
+		return emptyMultiResult, err
+	}
+
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
 	}
 
 	multiResult, err := buildMultiResult(
@@ -513,7 +571,12 @@ func (s *session) setInteger(oid string, value int) (multiResult, error) {
 
 	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
 	if err != nil {
-		return emptyMultiResult, nil
+		return emptyMultiResult, err
+	}
+
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
 	}
 
 	multiResult, err := buildMultiResult(
@@ -552,6 +615,11 @@ func (s *session) setIPAddress(oid, value string) (multiResult, error) {
 	}
 
 	result, err := s.snmp.set([]gosnmp.SnmpPDU{pdu})
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForErrors(result)
 	if err != nil {
 		return emptyMultiResult, err
 	}
