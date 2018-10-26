@@ -109,5 +109,3 @@ SNMPVariable(
 Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional, I was originally using that but I think its got some underlying thread-safety issues on the C side (particularly to do with SNMPv3).
 
 No offence to the guys that contribute to that project- it's served me very well.
-
-Test change
