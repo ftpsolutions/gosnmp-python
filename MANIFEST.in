@@ -1,0 +1,4 @@
+include LICENSE.txt
+include LICENSE_gosnmp.txt
+include README.md
+recursive-include gosnmp_python *
