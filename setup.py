@@ -31,6 +31,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     cmdclass={'install': CustomInstallCommand},  # numpy hack
+    package_data={
+        'gosnmp-python': ['_gosnmp_python.so', 'gosnmp_python.so'],
+    },
+    include_package_data=True,
 
     install_requires=[
         'pytest',
