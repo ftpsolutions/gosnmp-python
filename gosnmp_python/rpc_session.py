@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 from sys import version as python_version
+from sys import version_info
 from threading import RLock
 
 from builtins import *
@@ -15,13 +16,13 @@ from .common import (handle_exception, handle_multi_result,
 standard_library.install_aliases()
 
 is_pypy = 'pypy' in python_version.lower()
-version = tuple([int(x) for x in python_version.strip().split()[0].split('.')[0:2]])
+version = version_info[:3]
 
 # needed for CFFI under Python2
-if version < (3, 0):
+if version < (3, 0, 0):
     from past.types.oldstr import oldstr as str
 
-if not is_pypy and version < (3, 0):  # for Python2
+if not is_pypy and version < (3, 0, 0):  # for Python2
     from .py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
         RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3

@@ -1,16 +1,24 @@
 import setuptools
-from setuptools.command.install import install
+from setuptools import Distribution
+from setuptools.command.build_py import build_py
 import subprocess
+
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(foo):
+        return True
 
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-class CustomInstallCommand(install):
-    """Customized setuptools install command - prints a friendly greeting."""
+
+class my_build_py(build_py):
     def run(self):
-        subprocess.call(['./build.sh'])
-        install.run(self)
+        # honor the --dry-run flag
+        if not self.dry_run:
+            subprocess.call(['./build.sh'])
+        build_py.run(self)
 
 
 setuptools.setup(
@@ -30,9 +38,12 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    cmdclass={'install': CustomInstallCommand},  # numpy hack
+    cmdclass={
+        'build_py': my_build_py,
+    },
+
     package_data={
-        'gosnmp-python': ['_gosnmp_python.so', 'gosnmp_python.so'],
+        '': ['*.so'],
     },
     include_package_data=True,
 
@@ -43,6 +54,9 @@ setuptools.setup(
         'cffi',
         'future'
     ],
+
+    # Ensures that distributable copies are platform-specific and not universal
+    distclass=BinaryDistribution,
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
