@@ -22,6 +22,12 @@ Right now I'm still working on how to put it all together as a Python module, so
 * virtualenvwrapper
 * pkgconfig/pkg-config
 
+#### Installation (for prod)
+* ```python setup.py install``` 
+
+#### Making a python wheel install file (for distribution)
+* ```python setup.py bdist_wheel``` 
+
 #### Setup (for dev)
 
 * ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-python``` 
