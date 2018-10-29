@@ -24,6 +24,8 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Setup (for dev)
 
+Ensure both go and pkg-config are installed.
+
 * ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-python``` 
 * ```pip install -r requirements-dev.txt```
 * ```./build.sh```
