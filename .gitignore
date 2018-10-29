@@ -15,3 +15,7 @@ prebuilt
 .pytest_cache
 .vscode
 main.go
+build/
+dist/
+gosnmp_python.egg-info/
+.DS_Store
