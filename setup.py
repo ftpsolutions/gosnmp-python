@@ -33,7 +33,7 @@ setuptools.setup(
     author_email='scott.mills@ftpsolutions.com.au',
 
     # Choose your license
-    license='Commercial',
+    license='MIT',
     description="GoSNMP Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -68,7 +68,7 @@ setuptools.setup(
         'Topic :: FTP Technologies, IMS python tools',
 
         # Pick your license as you wish (should match "license" above)
-        'Commercial',
+        'MIT',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
