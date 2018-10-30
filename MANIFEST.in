@@ -1,5 +1,5 @@
-include LICENSE.txt
-include LICENSE_gosnmp.txt
+include LICENSE
+include LICENSE_gosnmp
 include README.md
 include gosnmp_python/cffi/_gosnmp_python.so
 include gosnmp_python/py2/gosnmp_python.so
