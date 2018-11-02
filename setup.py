@@ -23,7 +23,7 @@ class my_build_py(build_py):
 
 setuptools.setup(
     name="gosnmp-python",
-    version="0.0.1",
+    version="0.2.0",
 
     # The project's main homepage.
     url='https://github.com/ftpsolutions/gosnmp-python',
@@ -48,8 +48,8 @@ setuptools.setup(
     include_package_data=True,
 
     install_requires=[
-        'cffi',
-        'future'
+        'cffi==1.11.5',
+        'future==0.17.1'
     ],
 
     # Ensures that distributable copies are platform-specific and not universal
