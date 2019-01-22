@@ -23,7 +23,7 @@ class my_build_py(build_py):
 
 setuptools.setup(
     name="gosnmp-python",
-    version="0.2.0",
+    version="0.2.1",
 
     # The project's main homepage.
     url='https://github.com/ftpsolutions/gosnmp-python',
