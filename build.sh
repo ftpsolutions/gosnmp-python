@@ -8,7 +8,7 @@ fi
 
 GOVERSION=`go version`
 if [[ $GOVERSION != *"go1.9"* ]] && [[ $GOVERSION != *"go1.10"* ]] && [[ $GOVERSION != *"go1.11"* ]]; then
-    echo "error: Go version is not 1.9 or 1.10 (was $GOVERSION)"
+    echo "error: Go version is not 1.9, 1.10 or 1.11 (was $GOVERSION)"
     exit 1
 fi
 
@@ -64,7 +64,7 @@ if [[ "$1" != "fast" ]]; then
 fi
 
 echo "build gosnmp_python bindings for py2"
-./gopy bind -lang="py2" -output="gosnmp_python/py2" -symbols=true -work=false gosnmp_python
+./gopy bind -api="cpython" -output="gosnmp_python/py2" -symbols=true -work=false gosnmp_python
 echo ""
 
 # gopy doesn't seem to support Python3 as yet
@@ -73,7 +73,7 @@ echo ""
 # echo ""
 
 echo "build gosnmp_python bindings for cffi"
-./gopy bind -lang="cffi" -output="gosnmp_python/cffi" -symbols=true -work=false gosnmp_python
+./gopy bind -api="cffi" -output="gosnmp_python/cffi" -symbols=true -work=false gosnmp_python
 echo ""
 
 echo "cleaning up"

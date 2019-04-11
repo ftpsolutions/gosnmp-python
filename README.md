@@ -10,10 +10,6 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 * I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)
 * Seems to have some odd memory problems with PyPy (via CFFI); lots of locks and stuff to try and alleviate that
 
-#### How do I make use of this?
-
-Right now I'm still working on how to put it all together as a Python module, so here are the raw steps.
-
 #### Prerequisites
 
 * Go 1.9 or Go 1.10
@@ -21,6 +17,12 @@ Right now I'm still working on how to put it all together as a Python module, so
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
+
+#### Installation (for prod)
+* ```python setup.py install``` 
+
+#### Making a python wheel install file (for distribution)
+* ```python setup.py bdist_wheel``` 
 
 #### Setup (for dev)
 

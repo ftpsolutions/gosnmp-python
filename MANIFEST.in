@@ -1,0 +1,6 @@
+include LICENSE
+include LICENSE_gosnmp
+include README.md
+recursive-include src/gosnmp_python *
+recursive-include gosnmp_python *.so
+include build.sh

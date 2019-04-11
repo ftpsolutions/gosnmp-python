@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 from sys import version as python_version
+from sys import version_info
 from threading import RLock
 
 from builtins import *
@@ -15,7 +16,7 @@ from .common import (handle_exception, handle_multi_result,
 standard_library.install_aliases()
 
 is_pypy = 'pypy' in python_version.lower()
-version = tuple([int(x) for x in python_version.strip().split()[0].split('.')])
+version = version_info[:3]
 
 # needed for CFFI under Python2
 if version < (3, 0, 0):
