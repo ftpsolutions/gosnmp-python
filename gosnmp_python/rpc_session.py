@@ -25,7 +25,11 @@ if version < (3, 0, 0):
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
     THIS_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-    os.environ['LD_LIBRARY_PATH'] = '{}/py2'.format(THIS_SCRIPT_DIR)
+    ld_lib_paths_array = os.environ.get('LD_LIBRARY_PATH', '').split(':')
+    path_to_add = '{}/py2'.format(THIS_SCRIPT_DIR)
+    if path_to_add not in ld_lib_paths_array:
+        ld_lib_paths_array.append(path_to_add)
+    os.environ['LD_LIBRARY_PATH'] = ':'.join(ld_lib_paths_array)
     from .py2.gosnmp_python_go import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
         RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3
