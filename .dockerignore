@@ -1,0 +1,11 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!/gosnmp_python
+!/gosnmp_python_go
+!/build.sh
+!/go.mod
+!/go.sum
+!/requirements.txt
+!/setup.py

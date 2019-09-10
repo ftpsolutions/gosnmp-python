@@ -17,13 +17,15 @@ class my_build_py(build_py):
     def run(self):
         # honor the --dry-run flag
         if not self.dry_run:
-            subprocess.call(['./build.sh'])
+            return_value = subprocess.call(['./build.sh'])
+            if return_value != 0:
+                raise ValueError('build.sh returned non zero exit code')
         build_py.run(self)
 
 
 setuptools.setup(
     name="gosnmp-python",
-    version="0.2.1",
+    version="0.2.2",
 
     # The project's main homepage.
     url='https://github.com/ftpsolutions/gosnmp-python',
@@ -43,7 +45,7 @@ setuptools.setup(
     },
 
     package_data={
-        '': ['*.so'],
+        '': ['*.so*'],
     },
     include_package_data=True,
 

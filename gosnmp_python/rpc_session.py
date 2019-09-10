@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import re
+import os
 from sys import version as python_version
 from sys import version_info
 from threading import RLock
@@ -23,7 +24,9 @@ if version < (3, 0, 0):
     from past.types.oldstr import oldstr as str
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
-    from .py2.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
+    THIS_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+    os.environ['LD_LIBRARY_PATH'] = '{}/py2'.format(THIS_SCRIPT_DIR)
+    from .py2.gosnmp_python_go import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
         RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3
     from .cffi.gosnmp_python import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
