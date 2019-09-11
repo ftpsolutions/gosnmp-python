@@ -24,16 +24,6 @@ if version < (3, 0, 0):
     from past.types.oldstr import oldstr as str
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
-    THIS_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-    print('THIS SCRIPT DIR', THIS_SCRIPT_DIR)
-    ld_lib_paths_array = list(filter(lambda x: x, os.environ.get('LD_LIBRARY_PATH', '').split(':')))
-    path_to_add = '{}/py2'.format(THIS_SCRIPT_DIR)
-    print('PATH TO ADD', path_to_add)
-    if path_to_add not in ld_lib_paths_array:
-        print('Adding path...')
-        ld_lib_paths_array.append(path_to_add)
-    os.environ['LD_LIBRARY_PATH'] = ':'.join(ld_lib_paths_array)
-    print(os.environ['LD_LIBRARY_PATH'])
     from .py2.gosnmp_python_go import SetPyPy, NewRPCSessionV1, NewRPCSessionV2c, NewRPCSessionV3, RPCConnect, RPCGet, \
         RPCGetNext, RPCSetInteger, RPCSetIPAddress, RPCSetString, RPCClose
 else:  # for all versions of PyPy and also Python3
