@@ -49,6 +49,9 @@ setuptools.setup(
     },
     include_package_data=True,
 
+    # Force the egg to unzip
+    zip_safe=False,
+
     install_requires=[
         'cffi==1.11.5',
         'future==0.17.1'
