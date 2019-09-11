@@ -12,8 +12,8 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 
 #### Prerequisites
 
-* Go 1.9 or Go 1.10
-* Python 2.7+, Python 3.5+, PyPy 5.10+ or PyPy3 5.10+
+* Go 1.13
+* Python 2.7+, Python 3.5+
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
@@ -117,5 +117,8 @@ No offence to the guys that contribute to that project- it's served me very well
 
 To use the test build container...
 
-    docker build --tag gosnmp_python_test_build -f Dockerfile_test_build .
-    docker run --rm -it -v `pwd`:/workspace gosnmp_python_test_build bash
+    ./test.sh
+    
+To shell into the test container to have a look around...
+
+    ./test.sh bash

@@ -13,18 +13,26 @@ RUN apt-get update && apt-get install -y python2.7 \
         curl supervisor virtualenv autoconf libsnmp-dev \
         libncurses5-dev g++ cmake libssl-dev libaio1 liblz4-1
 
-# install Go1.9
 RUN mkdir /srv/staging
 RUN wget -O /srv/staging/go1.13.linux-amd64.tar.gz https://dl.google.com/go/go1.13.linux-amd64.tar.gz
 RUN tar zxvf /srv/staging/go1.13.linux-amd64.tar.gz -C /srv
 RUN ln -s /srv/go/bin/go /usr/local/bin/go
 RUN rm /srv/staging/go1.13.linux-amd64.tar.gz
 
-# create and update both virtual environments; but don't install anything yet
-RUN mkdir /srv/Envs \
-    && virtualenv /srv/Envs/backend_py \
-    && . /srv/Envs/backend_py/bin/activate \
-    && pip install --upgrade pip setuptools \
-    && deactivate
+RUN mkdir /workspace
+WORKDIR /workspace
+
+COPY requirements.txt /workspace/requirements.txt
+COPY README.md /workspace/README.md
+
+RUN pip install --upgrade pip setuptools
+RUN pip install -r requirements.txt
+
+COPY . .
 
 ENV TERM="xterm" GODEBUG="cgocheck=0"
+RUN python setup.py install
+
+# Some magic here - it's important so that python can find a shared object
+# at runtime
+ENV LD_LIBRARY_PATH=/usr/local/lib/gopy

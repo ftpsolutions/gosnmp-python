@@ -70,8 +70,14 @@ echo "installing pybindgen - required for gopy"
 pip install pybindgen==0.20.0
 
 echo "build gosnmp_python bindings for py2"
-./gopy build -output="gosnmp_python/py2" -symbols=true -vm=${VIRTUAL_ENV}/bin/python gosnmp_python/gosnmp_python_go
+./gopy build -output="gosnmp_python/py2" -symbols=true -vm=$(which python) gosnmp_python/gosnmp_python_go
 echo ""
+
+# Yep - this is highly questionable
+# This requires an entry in LD_LIBRARY_PATH to work
+echo "copying shared objects to /usr/local/lib/gosnmp_python"
+mkdir -p /usr/local/lib/gosnmp_python
+cp gosnmp_python/py2/gosnmp_python_go_go.so /usr/local/lib/gopy/
 
 # gopy doesn't seem to support Python3 as yet
 # echo "build gosnmp_python bindings for py3"

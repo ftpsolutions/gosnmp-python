@@ -126,7 +126,7 @@ class SessionTest(unittest.TestCase):
         handle_multi_result.return_value = _SNMP_VARIABLE
 
         assert_that(
-            self._subject.set('1.2.3.4', '1.2.3.4'),
+            self._subject.set('1.2.3.4', '1.2.3.3'),
             equal_to(
                 SNMPVariable(oid='.1.2.3', oid_index=4, snmp_type='string', value='some value')
             )
@@ -135,7 +135,7 @@ class SessionTest(unittest.TestCase):
         assert_that(
             rpc_call.mock_calls,
             equal_to([
-                call(0, '1.2.3.4', 'string')
+                call(0, '1.2.3.4', '1.2.3.3')
             ])
         )
 
