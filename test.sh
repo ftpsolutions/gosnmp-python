@@ -30,4 +30,4 @@ if [ "$#" -gt 0 ]; then
     DOCKER_CMD=$@
 fi
 
-docker run --name ${CONTAINER_NAME} --rm -it -v `pwd`:/workspace ${IMAGE_TAG} ${DOCKER_CMD}
+docker run --name ${CONTAINER_NAME} --rm -it ${IMAGE_TAG} ${DOCKER_CMD}

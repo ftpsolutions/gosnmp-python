@@ -19,6 +19,7 @@ export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
 PATH=${PATH}:~/go/bin
 
 echo "cleaning up output folder"
+rm -frv gosnmp_python/*.pyc
 rm -frv gosnmp_python/py2/*
 echo ""
 
