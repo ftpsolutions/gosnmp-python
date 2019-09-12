@@ -45,7 +45,7 @@ setuptools.setup(
     },
 
     package_data={
-        '': ['*.so*'],
+        '': ['*.so'],
     },
     include_package_data=True,
 

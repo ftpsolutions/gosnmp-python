@@ -4,7 +4,7 @@ set -e -o xtrace
 
 which go 2>/dev/null 1>/dev/null
 if [[ $? -ne 0 ]]; then
-    echo "error: failed to find go binary- do you have Go 1.9, Go 1.10 or Go1.11 installed?"
+    echo "error: failed to find go binary- do you have Go 1.13 installed?"
     exit 1
 fi
 
@@ -29,19 +29,15 @@ fi
 
 if [[ "$1" != "fast" ]]; then
     echo "building gosnmp"
-    go build -x -a github.com/ftpsolutions/gosnmp
-    echo ""
-
-    echo "installing gopy"
-    go install -i github.com/go-python/gopy
+    go build -x -a -mod readonly github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "building gopy"
     go build -x -a github.com/go-python/gopy
     echo ""
 
-    echo "building gosnmp_python"
-    go build -x -a gosnmp_python/gosnmp_python_go
+    echo "installing gopy"
+    go install -i -mod readonly github.com/go-python/gopy
     echo ""
 
     # Use a specific version!

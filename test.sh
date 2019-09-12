@@ -22,7 +22,10 @@ trap finish EXIT
 
 IMAGE_TAG=gosnmp_python_test_build-${CONTAINER_NAME}
 
-docker build --tag ${IMAGE_TAG} -f Dockerfile_test_build .
+if [ -z "${SKIP_BUILD}" ]; then
+    docker build --tag ${IMAGE_TAG} -f Dockerfile_test_build .
+fi
+
 
 DOCKER_CMD=py.test
 if [ "$#" -gt 0 ]; then
@@ -32,7 +35,7 @@ fi
 
 # Define MOUNT_WORKSPACE to mount this workspace inside the docker container
 WORKSPACE_VOLUME=""
-if [  ! -z "${MOUNT_WORKSPACE}"  ]; then
+if [ ! -z "${MOUNT_WORKSPACE}" ]; then
     WORKSPACE_VOLUME="-v `pwd`:/workspace"
 fi
 

@@ -31,8 +31,14 @@ RUN pip install -r requirements.txt
 COPY . .
 
 ENV TERM="xterm" GODEBUG="cgocheck=0"
-RUN python setup.py install
+
+# Install the sdist package
+RUN python setup.py sdist && cd dist && tar zxvf *.tar.gz && cd go* && python setup.py install
 
 # Some magic here - it's important so that python can find a shared object
 # at runtime
 ENV LD_LIBRARY_PATH=/usr/local/lib/gopy
+
+# Get out of the base workspace dir because it was causing strange
+# python include issues due to overlapping folder names
+WORKDIR /workspace/dist
