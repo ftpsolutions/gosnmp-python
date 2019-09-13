@@ -13,7 +13,7 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 #### Prerequisites
 
 * Go 1.13
-* Python 2.7+, Python 3.5+
+* Python 2.7+
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
