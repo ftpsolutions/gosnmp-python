@@ -1,8 +1,8 @@
-package gosnmp_python
+package gosnmp_python_go
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestGetPyPy(t *testing.T) {

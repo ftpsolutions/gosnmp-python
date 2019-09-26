@@ -5,10 +5,11 @@ out
 src/github.com
 *.pyc
 *__pycache__
-test*.py
 gosnmp_python.so
 _gosnmp_python.so
 gosnmp_python.py
+gosnmp_python/py2
+gosnmp_python/cffi
 gopy
 prebuilt
 .cache
@@ -19,3 +20,10 @@ build/
 dist/
 gosnmp_python.egg-info/
 .DS_Store
+Makefile
+go.py
+build.py
+.python-version
+scratch.py
+.eggs
+*VirtualEnv*

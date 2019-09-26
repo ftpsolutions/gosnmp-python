@@ -1,4 +1,4 @@
-package gosnmp_python
+package gosnmp_python_go
 
 const testHostname = "some_hostname"
 const testPort = 161

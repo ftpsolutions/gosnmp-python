@@ -1,4 +1,4 @@
-package gosnmp_python
+package gosnmp_python_go
 
 import (
 	"testing"

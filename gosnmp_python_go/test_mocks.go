@@ -1,6 +1,6 @@
 //+build !test
 
-package gosnmp_python
+package gosnmp_python_go
 
 import (
 	"encoding/json"

@@ -1,0 +1,44 @@
+# the actual image
+FROM ubuntu:16.04
+
+WORKDIR /srv
+
+# install all the system dependancies
+RUN apt-get update && apt-get install -y python2.7 \
+        python-pip fping python-dev \
+        libpq-dev libffi-dev unixodbc unixodbc-dev \
+        freetds-bin freetds-dev tdsodbc strace htop \
+        inetutils-ping nmap traceroute netcat tcpdump \
+        net-tools bmon entr git pkg-config nano vim wget \
+        curl supervisor virtualenv autoconf libsnmp-dev \
+        libncurses5-dev g++ cmake libssl-dev libaio1 liblz4-1
+
+RUN mkdir /srv/staging
+RUN wget -O /srv/staging/go1.13.linux-amd64.tar.gz https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+RUN tar zxvf /srv/staging/go1.13.linux-amd64.tar.gz -C /srv
+RUN ln -s /srv/go/bin/go /usr/local/bin/go
+RUN rm /srv/staging/go1.13.linux-amd64.tar.gz
+
+RUN mkdir /workspace
+WORKDIR /workspace
+
+COPY requirements.txt /workspace/requirements.txt
+COPY README.md /workspace/README.md
+
+RUN pip install --upgrade pip setuptools
+RUN pip install -r requirements.txt
+
+COPY . .
+
+ENV TERM="xterm" GODEBUG="cgocheck=0"
+
+# Install the sdist package
+RUN python setup.py sdist && cd dist && tar zxvf *.tar.gz && cd go* && python setup.py install
+
+# Some magic here - it's important so that python can find a shared object
+# at runtime
+ENV LD_LIBRARY_PATH=/usr/local/lib/gopy
+
+# Get out of the base workspace dir because it was causing strange
+# python include issues due to overlapping folder names
+WORKDIR /workspace/dist
