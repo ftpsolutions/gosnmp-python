@@ -1,6 +1,8 @@
 import os
 import signal
 import subprocess
+import getpass
+import threading
 
 from datetime import datetime
 
@@ -19,12 +21,20 @@ class SNMPSimServer(object):
     """
 
     def __init__(self, data_dir, port):
+        self._stop = threading.Event()
+
+        # If the user is root, as it is in docker containers, we need to handle that special case or
+        # snmpsim will throw an error
+        current_user = getpass.getuser()
+        handle_root_user = '--process-user=root --process-group=root' if current_user == 'root' else ''
+
         # You can run this command manually to start the snmpsimd server
         # Setting this to root - it's meant to be run in the docker container
         self._process = subprocess.Popen(
-            'snmpsimd.py --process-user=root --process-group=root --data-dir={data_dir} --agent-udpv4-endpoint=127.0.0.1:{port}'.format(
+            'snmpsimd.py {handle_root_user} --data-dir={data_dir} --agent-udpv4-endpoint=127.0.0.1:{port}'.format(
                 data_dir=data_dir,
-                port=port),
+                port=port,
+                handle_root_user=handle_root_user),
             shell=True,
             env=os.environ,
             cwd=os.getcwd(),
@@ -34,8 +44,8 @@ class SNMPSimServer(object):
 
         start_time = datetime.now()
         # Wait for the server to be ready...
+        output = ''
         while True:
-            output = ''
             line = self._process.stdout.readline()
             output += line
             if line:
@@ -47,7 +57,18 @@ class SNMPSimServer(object):
                     output
                 ))
 
+        # Need to drain the process stdout because if the buffer gets full the subprocess stops running
+        # properly ?!??
+        self._drain_stdout_thread = threading.Thread(target=self._drain_stdout)
+        self._drain_stdout_thread.start()
+
+    def _drain_stdout(self):
+        # Boolean setters are atomic
+        while not self._stop.is_set():
+            print(self._process.stdout.readline())
+
     def close(self):
+        self._stop.set()
         os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
 
     def __enter__(self):

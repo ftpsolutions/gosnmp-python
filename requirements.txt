@@ -4,3 +4,4 @@ PyHamcrest==1.9.0
 cffi==1.11.5
 future==0.16.0  # needed by gosnmp_python, gossh_python and goodbc_python
 snmpsim==0.4.7
+futures==3.3.0

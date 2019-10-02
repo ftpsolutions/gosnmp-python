@@ -6,6 +6,8 @@ github.com/ftpsolutions/gosnmp v0.0.0-20180913035423-cdbbd56a591c h1:hFl2MHZqZOB
 github.com/ftpsolutions/gosnmp v0.0.0-20180913035423-cdbbd56a591c/go.mod h1:pnEs9tG4tImBiJTPAzYlhKZf3RArjHojdh2zor/Opf8=
 github.com/ftpsolutions/gosnmp v0.0.0-20190923143327-089b4b5e2544 h1:o6dxMXRLym2IAsoUayRokSTOPDrP2N8rtCCwH6Wypk4=
 github.com/ftpsolutions/gosnmp v0.0.0-20190923143327-089b4b5e2544/go.mod h1:xLwqNoBwoOTrTYvPy1ih6wyqH4jkDYpW4LZdV0oZ1W0=
+github.com/ftpsolutions/gosnmp v0.0.0-20191002070456-2b778046ef43 h1:Ok8rj1hEnQ0y/K3ZTkdIPZoR4Dv2oOSW7sXX8k1j88g=
+github.com/ftpsolutions/gosnmp v0.0.0-20191002070456-2b778046ef43/go.mod h1:xLwqNoBwoOTrTYvPy1ih6wyqH4jkDYpW4LZdV0oZ1W0=
 github.com/go-python/gopy v0.3.1 h1:l0zBAjU89xGoFBR12NTK+JGj6O2dCqRB/rDTN44APBY=
 github.com/go-python/gopy v0.3.1/go.mod h1:gQ2Itc84itA1AjrVqnMnv7HLkfmNObRXlR1co7CXpbk=
 github.com/gonuts/commander v0.1.0 h1:EcDTiVw9oAVORFjQOEOuHQqcl6OXMyTgELocTq6zJ0I=
