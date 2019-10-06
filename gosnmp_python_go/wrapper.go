@@ -8,7 +8,7 @@ import (
 
 type wrappedSNMPInterface interface {
 	getSNMP() *gosnmp.GoSNMP
-	getConn() net.Conn
+	getConn() net.PacketConn
 	connect() error
 	get(oids []string) (result *gosnmp.SnmpPacket, err error)
 	getNext(oids []string) (result *gosnmp.SnmpPacket, err error)
@@ -24,7 +24,7 @@ func (w *wrappedSNMP) getSNMP() *gosnmp.GoSNMP {
 	return w.snmp
 }
 
-func (w *wrappedSNMP) getConn() net.Conn {
+func (w *wrappedSNMP) getConn() net.PacketConn {
 	return w.snmp.Conn
 }
 
