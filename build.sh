@@ -45,6 +45,7 @@ if [[ "$1" != "fast" ]]; then
     go get golang.org/x/tools/cmd/goimports@v0.0.0-20190910044552-dd2b5c81c578
 fi
 
+# Using a special version of pybindgen to fix some memory leaks specific to our use case
 echo "installing pybindgen - required for gopy"
 pip install --trusted-host imdemo.ftpsolutions.com.au \
     --extra-index-url http://imdemo.ftpsolutions.com.au:9011/ \
