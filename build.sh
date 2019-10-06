@@ -46,7 +46,9 @@ if [[ "$1" != "fast" ]]; then
 fi
 
 echo "installing pybindgen - required for gopy"
-pip install pybindgen==0.20.0
+pip install --trusted-host imdemo.ftpsolutions.com.au \
+    --extra-index-url http://imdemo.ftpsolutions.com.au:9011/ \
+    pybindgen==0.20.0.post2+gcab0b4a
 
 echo "build gosnmp_python bindings for py2"
 ./gopy build -output="gosnmp_python/py2" -symbols=true -vm=$(which python) gosnmp_python/gosnmp_python_go
