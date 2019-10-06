@@ -46,6 +46,7 @@ if [[ "$1" != "fast" ]]; then
 fi
 
 # Using a special version of pybindgen to fix some memory leaks specific to our use case
+# https://github.com/ftpsolutions/pybindgen
 echo "installing pybindgen - required for gopy"
 pip install --trusted-host imdemo.ftpsolutions.com.au \
     --extra-index-url http://imdemo.ftpsolutions.com.au:9011/ \
