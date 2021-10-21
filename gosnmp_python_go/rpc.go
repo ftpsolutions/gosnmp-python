@@ -1,6 +1,7 @@
 package gosnmp_python_go
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime/debug"
@@ -34,10 +35,8 @@ func handlePanic(extra string, sessionID uint64, s sessionInterface, err error) 
 
 // NewRPCSessionV1 creates a new Session for SNMPv1 and returns the sessionID
 func NewRPCSessionV1(hostname string, port int, community string, timeout, retries int) uint64 {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := newSessionV1(
 		hostname,
@@ -58,10 +57,8 @@ func NewRPCSessionV1(hostname string, port int, community string, timeout, retri
 
 // NewRPCSessionV2c creates a new Session for SNMPv2c and returns the sessionID
 func NewRPCSessionV2c(hostname string, port int, community string, timeout, retries int) uint64 {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := newSessionV2c(
 		hostname,
@@ -82,10 +79,8 @@ func NewRPCSessionV2c(hostname string, port int, community string, timeout, retr
 
 // NewRPCSessionV3 creates a new Session for SNMPv3 and returns the sessionID
 func NewRPCSessionV3(hostname string, port int, contextName, securityUsername, privacyPassword, authPassword, securityLevel, authProtocol, privacyProtocol string, timeout, retries int) uint64 {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := newSessionV3(
 		hostname,
@@ -112,10 +107,8 @@ func NewRPCSessionV3(hostname string, port int, contextName, securityUsername, p
 
 // RPCConnect calls .connect on the Session identified by the sessionID
 func RPCConnect(sessionID uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 
@@ -144,10 +137,8 @@ func RPCConnect(sessionID uint64) error {
 
 // RPCGet calls .get on the Session identified by the sessionID
 func RPCGet(sessionID uint64, oid string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -177,10 +168,8 @@ func RPCGet(sessionID uint64, oid string) (string, error) {
 
 // RPCGetNext calls .getNext on the Session identified by the sessionID
 func RPCGetNext(sessionID uint64, oid string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -208,12 +197,110 @@ func RPCGetNext(sessionID uint64, oid string) (string, error) {
 	return result, err
 }
 
+// RPCGetBulk calls .getBulk on the Session identified by the sessionID
+func RPCGetBulk(sessionID uint64, oids string, nonRepeaters uint8, maxRepetitions uint8) (string, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
+
+	var err error
+	var result string
+
+	// TODO: fix hack wherein gopy doesn't like receiving lists fron Python
+	realOids := make([]string, 0)
+	err = json.Unmarshal([]byte(oids), &realOids)
+	if err != nil {
+		return "[]", err
+	}
+
+	sessionMutex.Lock()
+	val, ok := sessions[sessionID]
+	sessionMutex.Unlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("getBulkJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
+	if ok {
+		result, err = val.getBulkJSON(realOids, nonRepeaters, maxRepetitions)
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return result, err
+}
+
+// RPCWalk calls .walk on the Session identified by the sessionID
+func RPCWalk(sessionID uint64, oid string) (string, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
+
+	var err error
+	var result string
+
+	sessionMutex.Lock()
+	val, ok := sessions[sessionID]
+	sessionMutex.Unlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("WalkJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
+	if ok {
+		result, err = val.walkJSON(oid)
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return result, err
+}
+
+// RPCWalkBulk calls .walkBulk on the Session identified by the sessionID
+func RPCWalkBulk(sessionID uint64, oid string) (string, error) {
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
+
+	var err error
+	var result string
+
+	sessionMutex.Lock()
+	val, ok := sessions[sessionID]
+	sessionMutex.Unlock()
+
+	// permit recovering from a panic but return the error
+	defer func(s sessionInterface) {
+		if r := recover(); r != nil {
+			if handledError, _ := r.(error); handledError != nil {
+				handlePanic("BulkWalkJSON", sessionID, val, handledError)
+				err = handledError
+			}
+		}
+	}(val)
+
+	if ok {
+		result, err = val.walkBulkJSON(oid)
+	} else {
+		err = fmt.Errorf("sessionID %v does not exist", sessionID)
+	}
+
+	return result, err
+}
+
 // RPCSetString calls .setString on the Session identified by the sessionID
 func RPCSetString(sessionID uint64, oid, value string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -243,10 +330,8 @@ func RPCSetString(sessionID uint64, oid, value string) (string, error) {
 
 // RPCSetInteger calls .SetInteger on the Session identified by the sessionID
 func RPCSetInteger(sessionID uint64, oid string, value int) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -276,10 +361,8 @@ func RPCSetInteger(sessionID uint64, oid string, value int) (string, error) {
 
 // RPCSetIPAddress calls .setIPAddress on the Session identified by the sessionID
 func RPCSetIPAddress(sessionID uint64, oid, value string) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -309,10 +392,8 @@ func RPCSetIPAddress(sessionID uint64, oid, value string) (string, error) {
 
 // RPCClose calls .close on the Session identified by the sessionID
 func RPCClose(sessionID uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	sessionMutex.Lock()
 	val, ok := sessions[sessionID]

@@ -3,7 +3,6 @@ package gosnmp_python_go
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 
 const (
 	usmStatsBaseOID = ".1.3.6.1.6.3.15.1.1"
+	maxOids         = 60
 )
 
 var usmStatsLookup = map[string]string{
@@ -100,6 +100,14 @@ func getAuthenticationDetails(AuthenticationPassword, AuthenticationProtocol str
 	return AuthenticationPassword, actualAuthenticationProtocol
 }
 
+func buildNoSuchInstanceMultiResult(oid string) multiResult {
+	return multiResult{
+		OID:              oid,
+		Type:             "noSuchInstance",
+		IsNoSuchInstance: true,
+	}
+}
+
 func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (multiResult, error) {
 	multiResult := multiResult{
 		OID: oid,
@@ -109,6 +117,7 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 
 	case gosnmp.Null:
 		fallthrough
+
 	case gosnmp.NoSuchInstance:
 		multiResult.Type = "noSuchInstance"
 		multiResult.IsNoSuchInstance = true
@@ -185,7 +194,7 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 
 	}
 
-	return multiResult, fmt.Errorf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
+	return multiResult, fmt.Errorf("unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
 }
 
 func checkVariableCount(oid string, result *gosnmp.SnmpPacket) error {
@@ -213,8 +222,9 @@ func checkForErrors(result *gosnmp.SnmpPacket) error {
 	switch result.Error {
 	case gosnmp.TooBig:
 		return fmt.Errorf("TooBigError: The size of the Response-PDU would be too large to transport.")
-	case gosnmp.NoSuchName:
-		return fmt.Errorf("NoSuchNameError: The name of a requested object was not found.")
+	// TODO: skipping this here as we'll return it in a MultiResult as noSuchInstance
+	// case gosnmp.NoSuchName:
+	//     return fmt.Errorf("NoSuchNameError: The name of a requested object was not found.")
 	case gosnmp.BadValue:
 		return fmt.Errorf("BadValueError: A value in the request didn't match the structure that the recipient of the request had for the object. For example, an object in the request was specified with an incorrect length or type.")
 	case gosnmp.ReadOnly:
@@ -252,6 +262,10 @@ func checkForErrors(result *gosnmp.SnmpPacket) error {
 	return nil
 }
 
+func isNoSuchNameError(result *gosnmp.SnmpPacket) bool {
+	return result.Error == gosnmp.NoSuchName
+}
+
 func checkForSNMPv3Issues(oid string, result *gosnmp.SnmpPacket) error {
 	if result.Version != gosnmp.Version3 {
 		return nil
@@ -283,6 +297,12 @@ type sessionInterface interface {
 	getJSON(string) (string, error)
 	getNext(string) (multiResult, error)
 	getNextJSON(string) (string, error)
+	getBulk([]string, uint8, uint8) ([]multiResult, error)
+	getBulkJSON([]string, uint8, uint8) (string, error)
+	walk(string) ([]multiResult, error)
+	walkJSON(string) (string, error)
+	walkBulk(string) ([]multiResult, error)
+	walkBulkJSON(string) (string, error)
 	setString(string, string) (multiResult, error)
 	setStringJSON(string, string) (string, error)
 	setInteger(string, int) (multiResult, error)
@@ -322,14 +342,19 @@ func getLogger(snmpProtocol, hostname string, port int) *log.Logger {
 func newSessionV1(hostname string, port int, community string, timeout, retries int) session {
 	snmp := wrappedSNMP{
 		&gosnmp.GoSNMP{
-			Target:    hostname,
-			Port:      uint16(port),
-			Community: community,
-			Version:   gosnmp.Version1,
-			Timeout:   time.Duration(timeout) * time.Second,
-			Retries:   retries,
-			MaxOids:   math.MaxInt32,
+			Target:         hostname,
+			Port:           uint16(port),
+			Community:      community,
+			Version:        gosnmp.Version1,
+			Timeout:        time.Duration(timeout) * time.Second,
+			Retries:        retries,
+			MaxOids:        maxOids,
+			MaxRepetitions: defaultMaxRepetitions,
 		},
+		0,
+		0,
+		time.Time{},
+		0,
 	}
 
 	logger := getLogger("SNMPv1", hostname, port)
@@ -347,14 +372,19 @@ func newSessionV1(hostname string, port int, community string, timeout, retries 
 func newSessionV2c(hostname string, port int, community string, timeout, retries int) session {
 	snmp := wrappedSNMP{
 		&gosnmp.GoSNMP{
-			Target:    hostname,
-			Port:      uint16(port),
-			Community: community,
-			Version:   gosnmp.Version2c,
-			Timeout:   time.Duration(timeout) * time.Second,
-			Retries:   retries,
-			MaxOids:   math.MaxInt32,
+			Target:         hostname,
+			Port:           uint16(port),
+			Community:      community,
+			Version:        gosnmp.Version2c,
+			Timeout:        time.Duration(timeout) * time.Second,
+			Retries:        retries,
+			MaxOids:        maxOids,
+			MaxRepetitions: defaultMaxRepetitions,
 		},
+		0,
+		0,
+		time.Time{},
+		0,
 	}
 
 	logger := getLogger("SNMPv2c", hostname, port)
@@ -389,9 +419,14 @@ func newSessionV3(hostname string, port int, contextName, securityUsername, priv
 				PrivacyPassphrase:        actualPrivPassword,
 				PrivacyProtocol:          actualPrivProtocol,
 			},
-			MaxOids:     math.MaxInt32,
-			ContextName: contextName,
+			ContextName:    contextName,
+			MaxOids:        maxOids,
+			MaxRepetitions: defaultMaxRepetitions,
 		},
+		0,
+		0,
+		time.Time{},
+		0,
 	}
 
 	logger := getLogger("SNMPv3", hostname, port)
@@ -428,6 +463,10 @@ func (s *session) get(oid string) (multiResult, error) {
 	result, err := s.snmp.get([]string{oid})
 	if err != nil {
 		return emptyMultiResult, err
+	}
+
+	if isNoSuchNameError(result) {
+		return buildNoSuchInstanceMultiResult(result.Variables[0].Name), nil
 	}
 
 	err = checkForErrors(result)
@@ -474,6 +513,10 @@ func (s *session) getNext(oid string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	if isNoSuchNameError(result) {
+		return buildNoSuchInstanceMultiResult(result.Variables[0].Name), nil
+	}
+
 	err = checkForErrors(result)
 	if err != nil {
 		return emptyMultiResult, err
@@ -515,6 +558,169 @@ func (s *session) getNextJSON(oid string) (string, error) {
 	return string(multiResultBytes), nil
 }
 
+func (s *session) getBulk(oids []string, nonRepeaters uint8, maxRepetitions uint8) ([]multiResult, error) {
+	if len(oids) == 0 {
+		return make([]multiResult, 0), fmt.Errorf("oids must be length of 1 or more")
+	}
+
+	emptyMultiResults := make([]multiResult, 0)
+
+	result, err := s.snmp.getBulk(oids, nonRepeaters, maxRepetitions)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	if isNoSuchNameError(result) {
+		return []multiResult{buildNoSuchInstanceMultiResult(result.Variables[0].Name)}, nil
+	}
+
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	err = checkForSNMPv3Issues(oids[0], result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	multiResults := make([]multiResult, 0)
+	for _, variable := range result.Variables {
+		multiResult, err := buildMultiResult(
+			variable.Name,
+			variable.Type,
+			variable.Value,
+		)
+		if err != nil {
+			return emptyMultiResults, err
+		}
+
+		multiResults = append(multiResults, multiResult)
+	}
+
+	return multiResults, nil
+}
+
+func (s *session) getBulkJSON(oids []string, nonRepeaters uint8, maxRepetitions uint8) (string, error) {
+	multiResults, err := s.getBulk(oids, nonRepeaters, maxRepetitions)
+	if err != nil {
+		return "[]", err
+	}
+
+	multiResultsBytes, err := json.Marshal(multiResults)
+	if err != nil {
+		return "[]", err
+	}
+
+	return string(multiResultsBytes), nil
+}
+
+func (s *session) walk(oid string) ([]multiResult, error) {
+	emptyMultiResults := make([]multiResult, 0)
+
+	result, err := s.snmp.walk([]string{oid})
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	if isNoSuchNameError(result) {
+		return []multiResult{buildNoSuchInstanceMultiResult(result.Variables[0].Name)}, nil
+	}
+
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	multiResults := make([]multiResult, 0)
+	for _, variable := range result.Variables {
+		multiResult, err := buildMultiResult(
+			variable.Name,
+			variable.Type,
+			variable.Value,
+		)
+		if err != nil {
+			return emptyMultiResults, err
+		}
+
+		multiResults = append(multiResults, multiResult)
+	}
+
+	return multiResults, nil
+}
+
+func (s *session) walkJSON(oid string) (string, error) {
+	multiResults, err := s.walk(oid)
+	if err != nil {
+		return "[]", err
+	}
+
+	multiResultsBytes, err := json.Marshal(multiResults)
+	if err != nil {
+		return "[]", err
+	}
+
+	return string(multiResultsBytes), nil
+}
+
+func (s *session) walkBulk(oid string) ([]multiResult, error) {
+	emptyMultiResults := make([]multiResult, 0)
+
+	result, err := s.snmp.walkBulk([]string{oid})
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	if isNoSuchNameError(result) {
+		return []multiResult{buildNoSuchInstanceMultiResult(result.Variables[0].Name)}, nil
+	}
+
+	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
+	if err != nil {
+		return emptyMultiResults, err
+	}
+
+	multiResults := make([]multiResult, 0)
+	for _, variable := range result.Variables {
+		multiResult, err := buildMultiResult(
+			variable.Name,
+			variable.Type,
+			variable.Value,
+		)
+		if err != nil {
+			return emptyMultiResults, err
+		}
+
+		multiResults = append(multiResults, multiResult)
+	}
+
+	return multiResults, nil
+}
+
+func (s *session) walkBulkJSON(oid string) (string, error) {
+	multiResults, err := s.walkBulk(oid)
+	if err != nil {
+		return "[]", err
+	}
+
+	multiResultsBytes, err := json.Marshal(multiResults)
+	if err != nil {
+		return "[]", err
+	}
+
+	return string(multiResultsBytes), nil
+}
+
 func (s *session) setString(oid, value string) (multiResult, error) {
 	emptyMultiResult := multiResult{}
 
@@ -529,7 +735,16 @@ func (s *session) setString(oid, value string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	if isNoSuchNameError(result) {
+		return buildNoSuchInstanceMultiResult(result.Variables[0].Name), nil
+	}
+
 	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
 	if err != nil {
 		return emptyMultiResult, err
 	}
@@ -574,7 +789,16 @@ func (s *session) setInteger(oid string, value int) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	if isNoSuchNameError(result) {
+		return buildNoSuchInstanceMultiResult(result.Variables[0].Name), nil
+	}
+
 	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
 	if err != nil {
 		return emptyMultiResult, err
 	}
@@ -619,7 +843,16 @@ func (s *session) setIPAddress(oid, value string) (multiResult, error) {
 		return emptyMultiResult, err
 	}
 
+	if isNoSuchNameError(result) {
+		return buildNoSuchInstanceMultiResult(result.Variables[0].Name), nil
+	}
+
 	err = checkForErrors(result)
+	if err != nil {
+		return emptyMultiResult, err
+	}
+
+	err = checkForSNMPv3Issues(oid, result)
 	if err != nil {
 		return emptyMultiResult, err
 	}
@@ -653,7 +886,7 @@ func (s *session) setIPAddressJSON(oid, value string) (string, error) {
 func (s *session) close() error {
 	if s.snmp != nil {
 		if s.snmp.getConn() != nil {
-			s.snmp.close()
+			_ = s.snmp.close()
 			s.snmp = nil
 		}
 	}

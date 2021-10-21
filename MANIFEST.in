@@ -1,9 +1,0 @@
-include LICENSE
-include LICENSE_gosnmp
-include README.md
-recursive-include e2e_test *
-recursive-include gosnmp_python *
-recursive-include gosnmp_python_go *
-include go.mod
-include go.sum
-include build.sh

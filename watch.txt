@@ -1,5 +1,0 @@
-# go
-find ./ -name '*.go' | GOPATH=`pwd` entr -c go test -v gosnmp_python
-
-# python
-find ./ -name '*.py' | GODEBUG=cgocheck=0 entr -c py.test -v gosnmp_python
