@@ -6,7 +6,7 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 
 #### Versions
 
-This version (0.2.4) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
+This version (0.91) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
 only.
 
 #### Limitations
@@ -22,6 +22,10 @@ only.
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
+
+#### Installation (from PyPI)
+
+* ```python -m pip install gosnmp-python```
 
 #### Installation (for prod)
 
