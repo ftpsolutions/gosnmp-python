@@ -1,3 +1,5 @@
 *.iml
 .git
 .idea
+go*_python/built
+go*_python/py2
