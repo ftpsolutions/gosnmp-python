@@ -4,6 +4,11 @@ The purpose of this module is to provide a Python interface to the Golang [gosnm
 
 It was made very easy with the help of the Golang [gopy](https://github.com/go-python/gopy) module.
 
+#### Versions
+
+This version (0.2.4) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
+only.
+
 #### Limitations
 
 * Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
@@ -19,16 +24,18 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 * pkgconfig/pkg-config
 
 #### Installation (for prod)
-* ```python setup.py install``` 
+
+* ```python setup.py install```
 
 #### Making a python wheel install file (for distribution)
-* ```python setup.py bdist_wheel``` 
+
+* ```python setup.py bdist_wheel```
 
 #### Setup (for dev)
 
 Ensure both go and pkg-config are installed.
 
-* ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-python``` 
+* ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-python```
 * ```pip install -r requirements-dev.txt```
 * ```./build.sh```
 * ```GODEBUG=cgocheck=0 py.test -v```
@@ -109,16 +116,16 @@ SNMPVariable(
     value='hostname.domain.com.au'
 )
 ```
- 
-Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional, I was originally using that but I think its got some underlying thread-safety issues on the C side (particularly to do with SNMPv3).
+
+Some of this may feel a bit like [easysnmp](https://github.com/kamakazikamikaze/easysnmp); that's intentional, I was originally using that
+but I think its got some underlying thread-safety issues on the C side (particularly to do with SNMPv3).
 
 No offence to the guys that contribute to that project- it's served me very well.
-
 
 To use the test build container...
 
     ./test.sh
-    
+
 To shell into the test container to have a look around...
 
     ./test.sh bash
